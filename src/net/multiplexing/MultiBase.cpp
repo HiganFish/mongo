@@ -22,7 +22,7 @@ void MultiBase::UpdateChannel(Channel* channel)
 
 }
 
-void MultiBase::LoopOnce(int msec, ActiveChannelList* channel_list)
+bool MultiBase::LoopOnceWithTimeout(int msec, ActiveChannelList* channel_list)
 {
 
 }

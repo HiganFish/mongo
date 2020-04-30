@@ -22,6 +22,8 @@ class Channel;
 class TcpConnection : public noncopyable, public std::enable_shared_from_this<TcpConnection>
 {
 public:
+    typedef std::function<void(const TcpConnectionPtr& conn, void* arg)> TimeOverCallback;
+
     TcpConnection(EventLoop* loop, const std::string& name, int sockfd, const InetAddress& host_addr, const InetAddress& client_addr);
     ~TcpConnection();
 
@@ -41,6 +43,8 @@ public:
 
     const InetAddress& GetClientAddr() const
     { return client_addr_; }
+
+    void AddTimer(const TimeOverCallback& callback, int sec, int msec, bool repeat = false, int count = -1);
 
     void ConnectionCreated();
 
@@ -70,11 +74,13 @@ private:
     // 发送未发送完的部分 归TCPConnection所管理, 发送完毕后可以触发回调
     WriteOverCallback write_over_callback_;
     CloseCallback close_callback_;
+    TimeOverCallback time_over_callback;
 
     void ReadHandle();
     void WriteHandle();
     void ErrorHandle();
     void CloseHandle();
+    void TimerOverHandle(void* arg);
 };
 
 }

@@ -23,7 +23,7 @@ public:
 
     void UpdateChannel(Channel* channel) override;
 
-    void LoopOnce(int msec, ActiveChannelList* channel_list) override;
+    bool LoopOnceWithTimeout(int msec, ActiveChannelList* channel_list) override;
 private:
     int epollfd_;
 

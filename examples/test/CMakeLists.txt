@@ -7,6 +7,9 @@ target_link_libraries(buffer_test mongo_net)
 add_executable(logger_test logger.cpp)
 target_link_libraries(logger_test mongo_net)
 
+add_executable(timer_test timer.cpp)
+target_link_libraries(timer_test mongo_net)
+
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/protobuf/login.pb.h)
 add_executable(protobuf_server_test protobuf/ProtobufServerTest.cpp protobuf/login.pb.cc protobuf/login.pb.h)
 target_link_libraries(protobuf_server_test mongo_net)

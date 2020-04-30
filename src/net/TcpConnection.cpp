@@ -94,6 +94,14 @@ void TcpConnection::CloseHandle()
     }
 }
 
+void TcpConnection::TimerOverHandle(void* arg)
+{
+    if (time_over_callback)
+    {
+        time_over_callback(shared_from_this(), arg);
+    }
+}
+
 void TcpConnection::Send(const char* msg, size_t len)
 {
     if (status_ == CONNECTED)
@@ -129,3 +137,10 @@ void TcpConnection::CloseConnection()
 {
     CloseHandle();
 }
+void TcpConnection::AddTimer(const TcpConnection::TimeOverCallback& callback, int sec, int msec, bool repeat, int count)
+{
+    time_over_callback = callback;
+    channel_->AddTimer(std::bind(&TcpConnection::TimerOverHandle, this, std::placeholders::_1),
+        sec, msec, repeat, count);
+}
+

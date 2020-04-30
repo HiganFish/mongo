@@ -11,7 +11,8 @@ using namespace mongo::net;
 
 EventLoop::EventLoop():
 multi_base_(MultiBase::InitMulti(this)),
-looping_(false)
+looping_(false),
+timer()
 {
 
 }
@@ -22,11 +23,18 @@ EventLoop::~EventLoop()
 void EventLoop::Loop()
 {
     looping_ = true;
+    timer.StartTimerLoop();
+
     while (looping_)
     {
         active_channel_list.clear();
 
-        multi_base_->LoopOnce(10, &active_channel_list);
+        bool has_timeout = multi_base_->LoopOnceWithTimeout(timer.GetNextTime(), &active_channel_list);
+
+        if (has_timeout)
+        {
+            timer.ProcessReadyTask();
+        }
 
         for (Channel* channel : active_channel_list)
         {
@@ -36,5 +44,10 @@ void EventLoop::Loop()
 }
 void EventLoop::UpdateChannel(Channel* channel)
 {
+    if (channel->GetTimerAddOnce())
+    {
+        timer.AddTimer(*channel->GetTimerTask());
+    }
+
     multi_base_->UpdateChannel(channel);
 }
