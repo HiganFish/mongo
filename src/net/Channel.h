@@ -9,6 +9,7 @@
 #include <functional>
 #include <memory>
 #include <sys/epoll.h>
+#include <map>
 namespace mongo
 {
 namespace net
@@ -21,7 +22,7 @@ class Channel
 {
 public:
     typedef std::function<void()> EventCallback;
-    typedef std::function<void(void* arg)> TimeOverCallback;
+    typedef std::function<void(const std::string& key)> TimeOverCallback;
 
     enum ChannelStatus {ADD, ADDED, DELED};
 
@@ -43,8 +44,6 @@ public:
     void SetEvents(uint32_t event)
     { events_ = event; }
 
-    bool GetTimerAddOnce();
-
     void EnableReading()
     { revents_ |= EPOLLIN; Update(); }
     void DisableReading()
@@ -55,11 +54,8 @@ public:
     void DisableWriting()
     { revents_ &= ~EPOLLOUT; Update(); }
 
-    void AddTimer(const TimeOverCallback& callback, int sec, int msec, bool repeat = false, int count = -1);
+    void AddTimer(const TimeOverCallback& callback, const std::string& key, int sec, int msec, bool repeat = false, int count = -1);
     // void DisableTimer(int sec, int msec, bool repeat = false, int count = -1);
-
-    std::shared_ptr<TimerTask> GetTimerTask()
-    { return timer_task_; }
 
     void DisableAll()
     { revents_ = 0; Update(); }
@@ -78,7 +74,17 @@ public:
     void SetCloseCallback(const EventCallback& close_callback)
     { close_callback_ = close_callback; }
 
-    void TimerOver();
+    void TimerOver(const std::string& key);
+
+    std::string GetNewTimerKey()
+    {
+        std::string temp = new_timer_key_;
+        new_timer_key_.clear();
+        return temp;
+    }
+
+    std::shared_ptr<TimerTask> GetTimerTaskByKey(const std::string& key)
+    { return timer_task_map_[key]; }
 private:
 
     EventLoop *loop_;
@@ -95,16 +101,16 @@ private:
      */
     uint32_t revents_;
     ChannelStatus status_;
-    bool timer_add_once_;
-    void* time_over_arg;
-
-    std::shared_ptr<TimerTask> timer_task_;
 
     EventCallback read_callback_;
     EventCallback write_callback_;
     EventCallback error_callback_;
     EventCallback close_callback_;
-    TimeOverCallback time_over_callback_;
+
+    std::string new_timer_key_;
+    std::map<std::string, std::shared_ptr<TimerTask>> timer_task_map_;
+    std::map<std::string, TimeOverCallback> timer_callback_map_;
+    // TimeOverCallback time_over_callback_;
 
     void Update();
 };

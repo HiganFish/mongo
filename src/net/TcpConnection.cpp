@@ -94,11 +94,23 @@ void TcpConnection::CloseHandle()
     }
 }
 
-void TcpConnection::TimerOverHandle(void* arg)
+void TcpConnection::TimerOverHandle(const std::string& key)
 {
-    if (time_over_callback)
+    auto result = timer_callback_map_.find(key);
+    if (result != timer_callback_map_.end())
     {
-        time_over_callback(shared_from_this(), arg);
+        LOG_INFO << GetConnectionName() << " - " << mongo::Timestamp::Now().ToSecMsecUsec() <<
+        " tigger timer key: " << key;
+        const TimerCallbackFunc& func = result->second;
+
+        if (func.callback)
+        {
+            func.callback(shared_from_this(), func.arg);
+        }
+    }
+    else
+    {
+        LOG_ERROR << "Unknow timer key " << key;
     }
 }
 
@@ -137,10 +149,26 @@ void TcpConnection::CloseConnection()
 {
     CloseHandle();
 }
-void TcpConnection::AddTimer(const TcpConnection::TimeOverCallback& callback, int sec, int msec, bool repeat, int count)
+void TcpConnection::AddTimer(const TcpConnection::TimeOverCallback& callback, void* arg, const std::string& key, int sec, int msec, bool repeat, int count)
 {
-    time_over_callback = callback;
-    channel_->AddTimer(std::bind(&TcpConnection::TimerOverHandle, this, std::placeholders::_1),
+    timer_callback_map_[key] = { callback, arg};
+    channel_->AddTimer(std::bind(&TcpConnection::TimerOverHandle, this, std::placeholders::_1), key,
         sec, msec, repeat, count);
+
+    if (repeat)
+    {
+        LOG_INFO << GetConnectionName() << " - " << mongo::Timestamp::Now().ToSecMsecUsec() <<
+        " add a new timer key: " << key << " sec: " << sec << " msec: " << msec <<
+        "repeat " << (count==-1?"endless" : std::to_string(count) + " times");
+    }
+    else
+    {
+        LOG_INFO << GetConnectionName() << " - " << mongo::Timestamp::Now().ToSecMsecUsec() <<
+        " add a new timer key: " << key << " sec: " << sec << " msec: " << msec;
+    }
+}
+void TcpConnection::EnableAutoClose(int sec)
+{
+
 }
 

@@ -18,11 +18,13 @@ struct TimerTask
 {
     TimerTask(
         Channel* channel_,
+        const std::string& key_,
         int set_msec_,
         long long next_msec_,
         bool reset_,
         int count_) :
         channel(channel_),
+        key(key_),
         set_msec(set_msec_),
         next_msec(next_msec_),
         repeat(reset_),
@@ -30,6 +32,7 @@ struct TimerTask
     {
     }
     Channel* channel;
+    std::string key;
     int set_msec; /* 用户设定的定时时间 单位毫秒 */
     long long next_msec; /* 下次触发时间 单位毫秒 */
     bool repeat; /* 是否循环 */
@@ -64,7 +67,7 @@ public:
 
     bool AddTimer(const TimerTask& task);
 
-    bool AddTimer(Channel* channel, int sec, bool repeat = false, int count = -1);
+    bool AddTimer(Channel* channel, const std::string& key_, int sec, bool repeat = false, int count = -1);
 
     /**
      * 增加定时器
@@ -76,7 +79,7 @@ public:
      * @param count 总执行次数 可选 默认-1无限次数
      * @return
      */
-    bool AddTimer(Channel* channel, int sec, int msec, bool repeat = false, int count = -1);
+    bool AddTimer(Channel* channel, const std::string& key_, int sec, int msec, bool repeat = false, int count = -1);
 
     /**
      * 开始时间循环

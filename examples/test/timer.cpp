@@ -8,15 +8,19 @@
 #include <Logger.h>
 #include <Timestamp.h>
 
-void OnTimeOver(const mongo::net::TcpConnectionPtr& conn, void* arg)
+void OnTimeOver1(const mongo::net::TcpConnectionPtr& conn, void* arg)
 {
-    LOG_INFO << "connection " <<  conn->GetConnectionName() << " time over " <<  mongo::Timestamp::Now().ToSecMsecUsec();
+    LOG_INFO << "OnTimeOver1 tigger";
 }
 
+void OnTimeOver2(const mongo::net::TcpConnectionPtr& conn, void* arg)
+{
+    LOG_INFO << "OnTimeOver2 tigger";
+}
 void OnNewConnection(const mongo::net::TcpConnectionPtr& conn)
 {
-    LOG_INFO << "connection " <<  conn->GetConnectionName() << " create " << mongo::Timestamp::Now().ToSecMsecUsec();
-    conn->AddTimer(OnTimeOver, 0, 100, true, 10);
+    conn->AddTimer(OnTimeOver1, nullptr,  "1", 1, 0, false);
+    conn->AddTimer(OnTimeOver2, nullptr,  "2", 2, 0, false);
 }
 
 int main()

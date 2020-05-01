@@ -25,16 +25,16 @@ Timer::~Timer()
 
 bool Timer::AddTimer(const TimerTask& task)
 {
-    AddTimer(task.channel, 0, task.set_msec, task.repeat, task.count);
+    AddTimer(task.channel, task.key, 0, task.set_msec, task.repeat, task.count);
 }
 
 
-bool Timer::AddTimer(Channel* channel, int sec, bool repeat, int count)
+bool Timer::AddTimer(Channel* channel, const std::string& key_, int sec, bool repeat, int count)
 {
-    return AddTimer(channel, sec, 0, repeat, count);
+    return AddTimer(channel, key_, sec, 0, repeat, count);
 }
 
-bool Timer::AddTimer(Channel* channel, int sec, int msec, bool repeat, int count)
+bool Timer::AddTimer(Channel* channel, const std::string& key_, int sec, int msec, bool repeat, int count)
 {
     if ((sec < 0) || (msec < 0))
     {
@@ -51,11 +51,11 @@ bool Timer::AddTimer(Channel* channel, int sec, int msec, bool repeat, int count
         struct timeval now;
         gettimeofday(&now, nullptr);
         long long extime = (now.tv_sec - start_time_.tv_sec) * 1000 + (now.tv_usec - start_time_.tv_usec) / 1000;
-        task_queue_.emplace(channel, sec * 1000 + msec, sec * 1000 + msec + extime, repeat, count);
+        task_queue_.emplace(channel, key_, sec * 1000 + msec, sec * 1000 + msec + extime, repeat, count);
     }
     else
     {
-        task_queue_.emplace(channel, sec * 1000 + msec, sec * 1000 + msec, repeat, count);
+        task_queue_.emplace(channel, key_, sec * 1000 + msec, sec * 1000 + msec, repeat, count);
     }
     return true;
 }
@@ -100,7 +100,7 @@ void Timer::ResetTimer(const TimerTask& task)
     int remain_count = task.count - 1;
     if (remain_count > 0)
     {
-        task_queue_.emplace(task.channel, task.set_msec, task.next_msec + task.set_msec, task.repeat, task.count - 1);
+        task_queue_.emplace(task.channel, task.key, task.set_msec, task.next_msec + task.set_msec, task.repeat, task.count - 1);
     }
     if (remain_count == 0)
     {
@@ -108,7 +108,7 @@ void Timer::ResetTimer(const TimerTask& task)
     }
     if (remain_count == -2)
     {
-        task_queue_.emplace(task.channel, task.set_msec, task.next_msec + task.set_msec, task.repeat, -1);
+        task_queue_.emplace(task.channel, task.key, task.set_msec, task.next_msec + task.set_msec, task.repeat, -1);
     }
 }
 
@@ -140,7 +140,7 @@ void Timer::ProcessReadyTask()
         }
         if (task.channel)
         {
-            task.channel->TimerOver();
+            task.channel->TimerOver(task.key);
         }
     }
 }

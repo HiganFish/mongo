@@ -44,9 +44,10 @@ void EventLoop::Loop()
 }
 void EventLoop::UpdateChannel(Channel* channel)
 {
-    if (channel->GetTimerAddOnce())
+    std::string key = channel->GetNewTimerKey();
+    if (!key.empty())
     {
-        timer.AddTimer(*channel->GetTimerTask());
+        timer.AddTimer(*channel->GetTimerTaskByKey(key));
     }
 
     multi_base_->UpdateChannel(channel);

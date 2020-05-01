@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <noncopyable.h>
+#include <map>
 #include "ConnectionCallback.h"
 #include "Buffer.h"
 #include "InetAddress.h"
@@ -44,7 +45,7 @@ public:
     const InetAddress& GetClientAddr() const
     { return client_addr_; }
 
-    void AddTimer(const TimeOverCallback& callback, int sec, int msec, bool repeat = false, int count = -1);
+    void AddTimer(const TimeOverCallback& callback, void* arg, const std::string& key, int sec, int msec, bool repeat = false, int count = -1);
 
     void ConnectionCreated();
 
@@ -52,6 +53,8 @@ public:
 
     bool Connected() const
     { return status_ == CONNECTED; }
+
+    void EnableAutoClose(int sec);
 private:
 
     enum Status{CONNECTING, CONNECTED, CLOSEING, CLOSED};
@@ -74,13 +77,21 @@ private:
     // 发送未发送完的部分 归TCPConnection所管理, 发送完毕后可以触发回调
     WriteOverCallback write_over_callback_;
     CloseCallback close_callback_;
-    TimeOverCallback time_over_callback;
 
     void ReadHandle();
     void WriteHandle();
     void ErrorHandle();
     void CloseHandle();
-    void TimerOverHandle(void* arg);
+    void TimerOverHandle(const std::string& key);
+
+    struct TimerCallbackFunc
+    {
+        TimeOverCallback callback;
+        void* arg;
+    };
+
+    typedef std::map<std::string, TimerCallbackFunc> TimerCallbackMap;
+    TimerCallbackMap timer_callback_map_;
 };
 
 }

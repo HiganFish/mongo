@@ -3,6 +3,7 @@
 //
 
 
+#include <Logger.h>
 #include "EventLoop.h"
 #include "Channel.h"
 #include "Timer.h"
@@ -16,9 +17,8 @@ Channel::Channel(EventLoop *loop, int fd):
     events_(0),
     revents_(0),
     status_(ADD),
-    timer_add_once_(false),
-    time_over_arg(nullptr),
-    timer_task_(nullptr)
+    timer_task_map_(),
+    timer_callback_map_()
 {
 
 }
@@ -61,28 +61,38 @@ void Channel::HandleEvent()
         }
     }
 }
-void Channel::AddTimer(const TimeOverCallback& callback, int sec, int msec, bool repeat, int count)
+void Channel::AddTimer(const TimeOverCallback& callback, const std::string& key, int sec, int msec, bool repeat, int count)
 {
-    timer_task_.reset(new TimerTask(this, sec * 1000 + msec, 0, repeat, count));
+    if (key.empty())
+    {
+        LOG_ERROR << "Invalid timer key" << key;
+        return;
+    }
 
-    time_over_callback_ = callback;
+    timer_task_map_[key].reset(new TimerTask(this, key, sec * 1000 + msec, 0, repeat, count));
+    timer_callback_map_[key] = callback;
 
-    timer_add_once_ = true;
+    new_timer_key_ = key;
     Update();
 }
-void Channel::TimerOver()
+void Channel::TimerOver(const std::string& key)
 {
-    if (time_over_callback_)
+
+    auto callback = timer_callback_map_.find(key);
+    auto task = timer_task_map_.find(key);
+    if (callback == timer_callback_map_.end())
     {
-        time_over_callback_(time_over_arg);
+        LOG_ERROR << "Unknow timer callback " << key;
+        return;
     }
-}
-bool Channel::GetTimerAddOnce()
-{
-    if (timer_add_once_)
+    if (task == timer_task_map_.end())
     {
-        timer_add_once_ = false;
-        return true;
+        LOG_ERROR << "Unknow timer task " << key;
+        return;
     }
-    return false;
+
+    if (callback->second)
+    {
+        callback->second(key);
+    }
 }
