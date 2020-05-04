@@ -7,6 +7,8 @@
 
 #include <memory>
 #include <noncopyable.h>
+#include <map>
+#include <Timestamp.h>
 #include "ConnectionCallback.h"
 #include "Buffer.h"
 #include "InetAddress.h"
@@ -22,6 +24,8 @@ class Channel;
 class TcpConnection : public noncopyable, public std::enable_shared_from_this<TcpConnection>
 {
 public:
+    typedef std::function<void(const TcpConnectionPtr& conn, void* arg)> TimeOverCallback;
+
     TcpConnection(EventLoop* loop, const std::string& name, int sockfd, const InetAddress& host_addr, const InetAddress& client_addr);
     ~TcpConnection();
 
@@ -42,12 +46,16 @@ public:
     const InetAddress& GetClientAddr() const
     { return client_addr_; }
 
+    void AddTimer(const TimeOverCallback& callback, void* arg, const std::string& key, int sec, int msec, bool repeat = false, int count = -1);
+
     void ConnectionCreated();
 
     void CloseConnection();
 
     bool Connected() const
     { return status_ == CONNECTED; }
+
+    void EnableAutoClose(int sec);
 private:
 
     enum Status{CONNECTING, CONNECTED, CLOSEING, CLOSED};
@@ -58,6 +66,9 @@ private:
 
     Buffer input_buffer_;
     Buffer output_buffer_;
+
+    size_t sum_recv_;
+    Timestamp established_time_;
 
     std::unique_ptr<Socket> socket_;
     std::unique_ptr<Channel> channel_;
@@ -75,6 +86,17 @@ private:
     void WriteHandle();
     void ErrorHandle();
     void CloseHandle();
+    void TimerOverHandle(const std::string& key);
+    void AutoCloseConnHandle();
+
+    struct TimerCallbackFunc
+    {
+        TimeOverCallback callback;
+        void* arg;
+    };
+
+    typedef std::map<std::string, TimerCallbackFunc> TimerCallbackMap;
+    TimerCallbackMap timer_callback_map_;
 };
 
 }

@@ -24,7 +24,7 @@ public:
 
     virtual void UpdateChannel(Channel* channel);
 
-    virtual void LoopOnce(int msec, ActiveChannelList* channel_list);
+    virtual bool LoopOnceWithTimeout(int msec, ActiveChannelList* channel_list);
 
     static MultiBase* InitMulti(EventLoop *loop);
 

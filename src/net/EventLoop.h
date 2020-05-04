@@ -8,6 +8,8 @@
 #include <vector>
 #include <memory>
 
+#include "Timer.h"
+
 namespace mongo
 {
 namespace net
@@ -34,6 +36,7 @@ private:
     typedef std::vector<Channel*> ActiveChannelList;
     ActiveChannelList active_channel_list;
 
+    Timer timer;
 };
 }
 }

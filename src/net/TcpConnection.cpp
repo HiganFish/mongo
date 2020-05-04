@@ -14,6 +14,8 @@ TcpConnection::TcpConnection(EventLoop* loop, const std::string& connection_name
 loop_(loop),
 connection_name_(connection_name),
 status_(CONNECTING),
+sum_recv_(0),
+established_time_(Timestamp::Now()),
 socket_(new Socket(sockfd)),
 channel_(new Channel(loop_, socket_->GetFd())),
 host_addr_(host_addr),
@@ -42,6 +44,7 @@ void TcpConnection::ReadHandle()
     }
     else
     {
+        sum_recv_ += bytes;
         if (message_callback_)
         {
             message_callback_(shared_from_this(), &input_buffer_);
@@ -94,6 +97,26 @@ void TcpConnection::CloseHandle()
     }
 }
 
+void TcpConnection::TimerOverHandle(const std::string& key)
+{
+    auto result = timer_callback_map_.find(key);
+    if (result != timer_callback_map_.end())
+    {
+        LOG_INFO << GetConnectionName() << " - " << mongo::Timestamp::Now().ToSecMsecUsec() <<
+        " tigger timer key: " << key;
+        const TimerCallbackFunc& func = result->second;
+
+        if (func.callback)
+        {
+            func.callback(shared_from_this(), func.arg);
+        }
+    }
+    else
+    {
+        LOG_ERROR << "Unknow timer key " << key;
+    }
+}
+
 void TcpConnection::Send(const char* msg, size_t len)
 {
     if (status_ == CONNECTED)
@@ -129,3 +152,35 @@ void TcpConnection::CloseConnection()
 {
     CloseHandle();
 }
+void TcpConnection::AddTimer(const TcpConnection::TimeOverCallback& callback, void* arg, const std::string& key, int sec, int msec, bool repeat, int count)
+{
+    timer_callback_map_[key] = { callback, arg};
+    channel_->AddTimer(std::bind(&TcpConnection::TimerOverHandle, this, std::placeholders::_1), key,
+        sec, msec, repeat, count);
+
+    if (repeat)
+    {
+        LOG_INFO << GetConnectionName() << " - " << mongo::Timestamp::Now().ToSecMsecUsec() <<
+        " add a new timer key: " << key << " sec: " << sec << " msec: " << msec <<
+        "repeat " << (count==-1?"endless" : std::to_string(count) + " times");
+    }
+    else
+    {
+        LOG_INFO << GetConnectionName() << " - " << mongo::Timestamp::Now().ToSecMsecUsec() <<
+        " add a new timer key: " << key << " sec: " << sec << " msec: " << msec;
+    }
+}
+void TcpConnection::EnableAutoClose(int sec)
+{
+    channel_->AddTimer(std::bind(&TcpConnection::AutoCloseConnHandle, this), "auto-close", sec, 0);
+}
+
+void TcpConnection::AutoCloseConnHandle()
+{
+	if (sum_recv_ == 0)
+	{
+		LOG_INFO << GetConnectionName() << " established at " << established_time_.ToSecMsecUsec() << " time over auto close";
+		CloseHandle();
+	}
+}
+

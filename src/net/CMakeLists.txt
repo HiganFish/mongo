@@ -13,7 +13,8 @@ SET(HEADFILES
         ConnectionCallback.h
         EventLoopThread.h
         EventLoopThreadPoll.h
-        Endian.h)
+        Endian.h
+        Timer.h)
 
 SET(SRCFILES
         EventLoop.cpp
@@ -29,6 +30,7 @@ SET(SRCFILES
         Buffer.cpp
         EventLoopThread.cpp
         EventLoopThreadPoll.cpp
+        Timer.cpp
 )
 
 add_library(mongo_net ${HEADFILES} ${SRCFILES})

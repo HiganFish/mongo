@@ -7,17 +7,22 @@
 
 #include <cstdint>
 #include <functional>
+#include <memory>
 #include <sys/epoll.h>
+#include <map>
 namespace mongo
 {
 namespace net
 {
 
 class EventLoop;
+struct TimerTask;
+
 class Channel
 {
 public:
     typedef std::function<void()> EventCallback;
+    typedef std::function<void(const std::string& key)> TimeOverCallback;
 
     enum ChannelStatus {ADD, ADDED, DELED};
 
@@ -49,6 +54,9 @@ public:
     void DisableWriting()
     { revents_ &= ~EPOLLOUT; Update(); }
 
+    void AddTimer(const TimeOverCallback& callback, const std::string& key, int sec, int msec, bool repeat = false, int count = -1);
+    // void DisableTimer(int sec, int msec, bool repeat = false, int count = -1);
+
     void DisableAll()
     { revents_ = 0; Update(); }
 
@@ -65,6 +73,18 @@ public:
 
     void SetCloseCallback(const EventCallback& close_callback)
     { close_callback_ = close_callback; }
+
+    void TimerOver(const std::string& key);
+
+    std::string GetNewTimerKey()
+    {
+        std::string temp = new_timer_key_;
+        new_timer_key_.clear();
+        return temp;
+    }
+
+    std::shared_ptr<TimerTask> GetTimerTaskByKey(const std::string& key)
+    { return timer_task_map_[key]; }
 private:
 
     EventLoop *loop_;
@@ -86,6 +106,11 @@ private:
     EventCallback write_callback_;
     EventCallback error_callback_;
     EventCallback close_callback_;
+
+    std::string new_timer_key_;
+    std::map<std::string, std::shared_ptr<TimerTask>> timer_task_map_;
+    std::map<std::string, TimeOverCallback> timer_callback_map_;
+    // TimeOverCallback time_over_callback_;
 
     void Update();
 };
