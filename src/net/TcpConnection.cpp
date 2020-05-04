@@ -14,6 +14,8 @@ TcpConnection::TcpConnection(EventLoop* loop, const std::string& connection_name
 loop_(loop),
 connection_name_(connection_name),
 status_(CONNECTING),
+sum_recv_(0),
+established_time_(Timestamp::Now()),
 socket_(new Socket(sockfd)),
 channel_(new Channel(loop_, socket_->GetFd())),
 host_addr_(host_addr),
@@ -42,6 +44,7 @@ void TcpConnection::ReadHandle()
     }
     else
     {
+        sum_recv_ += bytes;
         if (message_callback_)
         {
             message_callback_(shared_from_this(), &input_buffer_);
@@ -169,6 +172,15 @@ void TcpConnection::AddTimer(const TcpConnection::TimeOverCallback& callback, vo
 }
 void TcpConnection::EnableAutoClose(int sec)
 {
+    channel_->AddTimer(std::bind(&TcpConnection::AutoCloseConnHandle, this), "auto-close", sec, 0);
+}
 
+void TcpConnection::AutoCloseConnHandle()
+{
+	if (sum_recv_ == 0)
+	{
+		LOG_INFO << GetConnectionName() << " established at " << established_time_.ToSecMsecUsec() << " time over auto close";
+		CloseHandle();
+	}
 }
 

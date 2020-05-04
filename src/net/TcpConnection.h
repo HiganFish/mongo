@@ -8,6 +8,7 @@
 #include <memory>
 #include <noncopyable.h>
 #include <map>
+#include <Timestamp.h>
 #include "ConnectionCallback.h"
 #include "Buffer.h"
 #include "InetAddress.h"
@@ -66,6 +67,9 @@ private:
     Buffer input_buffer_;
     Buffer output_buffer_;
 
+    size_t sum_recv_;
+    Timestamp established_time_;
+
     std::unique_ptr<Socket> socket_;
     std::unique_ptr<Channel> channel_;
 
@@ -83,6 +87,7 @@ private:
     void ErrorHandle();
     void CloseHandle();
     void TimerOverHandle(const std::string& key);
+    void AutoCloseConnHandle();
 
     struct TimerCallbackFunc
     {
