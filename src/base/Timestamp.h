@@ -6,6 +6,8 @@
 #define MONGO_SRC_BASE_TIMESTAMP_H
 
 #include <cstdint>
+#include <string>
+
 namespace mongo
 {
 class Timestamp
@@ -23,6 +25,20 @@ public:
 
     int64_t GetUsSinceCreate() const
     { return us_since_create; }
+
+    std::string ToUsec()
+    { return std::to_string(us_since_create); }
+
+    std::string ToSecMsec()
+    { return std::to_string(us_since_create / US_PER_SECOND) + ":" +
+    std::to_string(us_since_create / 1000 % 1000); }
+
+    std::string ToSecMsecUsec()
+    {
+        return std::to_string(us_since_create / US_PER_SECOND) + ":" +
+            std::to_string(us_since_create / 1000 % 1000) + ":" +
+            std::to_string(us_since_create % 1000);
+    }
 
 private:
     int64_t us_since_create;

@@ -53,22 +53,23 @@ void MultiEpoll::UpdateChannel(Channel* channel)
     }
 }
 
-void MultiEpoll::LoopOnce(int msec, ActiveChannelList* channel_list)
+bool MultiEpoll::LoopOnceWithTimeout(int msec, ActiveChannelList* channel_list)
 {
     int number = epoll_wait(epollfd_, events_.data(), static_cast<int>(events_.size()), msec);
     if (number < 0)
     {
         LOG_FATAL_IF(errno != EINTR) << "epoll_wait error";
     }
-    if (number > 0)
+    else if (number > 0)
     {
         LOG_DEBUG << number << " active event";
         FillActiveChannelList(number, channel_list);
     }
     else
     {
-        // LOG_DEBUG << "no active event";
+        return true;
     }
+    return false;
 }
 
 void MultiEpoll::FillActiveChannelList(int number, ActiveChannelList* channel_list)
