@@ -18,6 +18,7 @@ class Buffer
 {
 public:
     Buffer();
+    explicit Buffer(size_t buffer_size);
     ~Buffer();
 
     size_t ReadFromFd(int fd);

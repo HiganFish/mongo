@@ -6,6 +6,8 @@
 #define MONGO_SRC_NET_SOCKET_H
 
 #include <netinet/in.h>
+
+#include "InetAddress.h"
 #include "noncopyable.h"
 namespace mongo
 {
@@ -24,6 +26,7 @@ public:
     void SetKeepAlive(bool enable);
 
     void Bind(const sockaddr_in& addr);
+    void Bind(const InetAddress& addr);
     void Listening();
 
     int Accept(InetAddress* addr);
@@ -32,6 +35,8 @@ public:
 
     int GetFd() const
     { return sockfd_; }
+
+
 private:
     int sockfd_;
 };
@@ -40,6 +45,7 @@ private:
 namespace sockets
 {
 int CreateNonBlockFd();
+int CreateUdpFd();
 void SetNonblocking(int fd);
 }
 }

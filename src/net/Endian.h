@@ -8,8 +8,7 @@
 #include <endian.h>
 namespace mongo
 {
-namespace net
-{
+
 namespace sockets
 {
 inline int32_t NetworkToHost32(int32_t num)
@@ -19,8 +18,6 @@ inline int32_t NetworkToHost32(int32_t num)
 inline int32_t HostToNetwork32(int32_t num)
 {
     return htobe32(num);
-}
-
 }
 }
 }

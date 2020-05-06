@@ -14,7 +14,10 @@ SET(HEADFILES
         EventLoopThread.h
         EventLoopThreadPoll.h
         Endian.h
-        Timer.h)
+        Timer.h
+        UdpServer.h
+        UdpDgram.h
+)
 
 SET(SRCFILES
         EventLoop.cpp
@@ -31,6 +34,8 @@ SET(SRCFILES
         EventLoopThread.cpp
         EventLoopThreadPoll.cpp
         Timer.cpp
+        UdpServer.cpp
+        UdpDgram.cpp
 )
 
 add_library(mongo_net ${HEADFILES} ${SRCFILES})

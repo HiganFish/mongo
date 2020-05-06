@@ -16,7 +16,7 @@ channel_(loop, listenfd_.GetFd())
     listenfd_.SetReuseAddr(true);
     listenfd_.SetKeepAlive(true);
     listenfd_.SetReusePort(reuse_port);
-    listenfd_.Bind(addr.GetAddr());
+    listenfd_.Bind(addr);
     LOG_INFO << "Bind on " << addr.GetIpPort();
 }
 Acceptor::~Acceptor()

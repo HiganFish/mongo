@@ -21,6 +21,16 @@ buffer_(DEFAULT_BUFFER_SIZE)
 {
 
 }
+
+Buffer::Buffer(size_t buffer_size):
+read_index_(BUFFER_BEGIN),
+write_index_(BUFFER_BEGIN),
+buffer_(buffer_size)
+{
+
+}
+
+
 Buffer::~Buffer()
 {
 
@@ -145,6 +155,7 @@ int32_t Buffer::PeekInt32()
         return sockets::NetworkToHost32(ret);
     }
 }
+
 void Buffer::AppendInt32(int32_t num)
 {
     EnsureWriteBytes(sizeof num);
@@ -152,6 +163,7 @@ void Buffer::AppendInt32(int32_t num)
     ::memcpy(WriteBegin(), &network_num, sizeof(num));
     AddWriteIndex(sizeof(num));
 }
+
 void Buffer::RAppendInt32(int32_t num)
 {
     int32_t newwork_num = sockets::HostToNetwork32(num);

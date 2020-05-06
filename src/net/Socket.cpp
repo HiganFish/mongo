@@ -6,7 +6,6 @@
 #include <zconf.h>
 #include <Logger.h>
 #include "Socket.h"
-#include "InetAddress.h"
 
 using namespace mongo;
 
@@ -42,6 +41,11 @@ void net::Socket::SetKeepAlive(bool enable)
     LOG_FATAL_IF(ret == -1) << (enable ? "enable" : "disable") << " keepalive error";
 }
 
+void net::Socket::Bind(const net::InetAddress& addr)
+{
+	Bind(addr.GetAddr());
+}
+
 void net::Socket::Bind(const sockaddr_in& addr)
 {
     int ret = bind(sockfd_, (sockaddr*)&addr, static_cast<socklen_t>(sizeof addr));
@@ -73,6 +77,13 @@ int sockets::CreateNonBlockFd()
     int sockfd =  socket(PF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
     LOG_FATAL_IF(sockfd < 0) << "socket create error";
 }
+
+int sockets::CreateUdpFd()
+{
+	int sockfd =  socket(PF_INET, SOCK_DGRAM, 0);
+	LOG_FATAL_IF(sockfd < 0) << "socket create error";
+}
+
 void sockets::SetNonblocking(int fd)
 {
 
