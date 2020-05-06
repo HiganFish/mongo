@@ -31,7 +31,9 @@ public:
 
     int Accept(InetAddress* addr);
 
-    int Send(const char* msg, size_t len);
+	ssize_t Send(const char* msg, size_t len);
+
+	ssize_t SendTo(const char* msg, size_t len, const InetAddress& address);
 
     int GetFd() const
     { return sockfd_; }

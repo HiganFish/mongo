@@ -2,7 +2,6 @@
 // Created by lsmg on 5/5/20.
 //
 
-#include "UdpDgram.h"
 #include "UdpServer.h"
 #include "Logger.h"
 
@@ -10,12 +9,13 @@ using namespace mongo;
 using namespace mongo::net;
 
 UdpServer::UdpServer(const std::string& name, const InetAddress& addr):
-server_name_(name),
-peer_addr_(addr),
-listenfd_(sockets::CreateUdpFd()),
-looping_(false)
+	server_name_(name),
+	peer_addr_(addr),
+	bindfd_(sockets::CreateUdpFd()),
+	onmessage_callback(std::bind(&UdpServer::DefaultOnMessage, this, std::placeholders::_1)),
+	looping_(false)
 {
-	listenfd_.Bind(addr);
+	bindfd_.Bind(addr);
 	LOG_INFO << "Bind on " << addr.GetIpPort();
 }
 void UdpServer::Start()
@@ -28,14 +28,22 @@ void UdpServer::Loop()
 
 	while (looping_)
 	{
-		UdpDgram dgram(peer_addr_);
+		UdpDgramPtr dgram(new UdpDgram(this, peer_addr_));
 
-		bool result = dgram.RecvFrom(listenfd_);
+		bool result = dgram->RecvFrom(bindfd_);
 
 		if (result)
 		{
-			LOG_INFO << dgram.GetInputBuffer()->ReadableBytes() << " \r\n" <<
-			dgram.GetInputBuffer()->ReadAllAsString();
+			if (onmessage_callback)
+			{
+				onmessage_callback(dgram);
+			}
+
 		}
 	}
+}
+void UdpServer::DefaultOnMessage(const UdpDgramPtr& dgram)
+{
+	LOG_INFO << dgram->GetInputBuffer()->ReadableBytes() << " \r\n" <<
+		  dgram->GetInputBuffer()->ReadAllAsString();
 }

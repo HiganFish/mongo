@@ -26,6 +26,12 @@ public:
     const sockaddr_in& GetAddr() const
     { return addr_; }
 
+    const sockaddr* GetAddrPtr() const
+    { return (sockaddr*)&addr_; }
+
+    socklen_t GetAddrLen() const
+    { return static_cast<socklen_t>(sizeof addr_); }
+
     void SetAddr(sockaddr_in addr);
 private:
     struct sockaddr_in addr_;

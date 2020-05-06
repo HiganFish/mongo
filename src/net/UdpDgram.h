@@ -14,10 +14,11 @@ namespace mongo
 namespace net
 {
 
+class UdpServer;
 class UdpDgram
 {
 public:
-	UdpDgram(const InetAddress& peer_addr);
+	UdpDgram(UdpServer* server, const InetAddress& peer_addr);
 
 	void Send(const char* str, size_t len);
 
@@ -31,6 +32,7 @@ public:
 	Buffer* GetOutputBuffer()
 	{ return &output_buffer_; }
 private:
+	UdpServer* server_;
 
 	InetAddress peer_addr_;
 	InetAddress dgram_addr_;

@@ -66,10 +66,16 @@ int net::Socket::Accept(InetAddress* addr)
 
     return sockfd;
 }
-int net::Socket::Send(const char* msg, size_t len)
+ssize_t net::Socket::Send(const char* msg, size_t len)
 {
-    int ret = send(sockfd_, msg, len, MSG_DONTWAIT);
+    ssize_t ret = send(sockfd_, msg, len, MSG_DONTWAIT);
     return ret;
+}
+ssize_t net::Socket::SendTo(const char* msg, size_t len, const net::InetAddress& address)
+{
+	ssize_t ret = sendto(sockfd_, msg, len,0 , address.GetAddrPtr(), address.GetAddrLen());
+
+	return ret;
 }
 
 int sockets::CreateNonBlockFd()
