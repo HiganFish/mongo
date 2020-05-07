@@ -40,7 +40,9 @@ void EventLoop::Loop()
         {
             channel->HandleEvent();
         }
+		CallLoopFunc();
     }
+
 }
 void EventLoop::UpdateChannel(Channel* channel)
 {
@@ -51,4 +53,29 @@ void EventLoop::UpdateChannel(Channel* channel)
     }
 
     multi_base_->UpdateChannel(channel);
+}
+void EventLoop::RunInLoop(const EventLoop::LoopFunc& func, bool repeat)
+{
+	if (repeat)
+	{
+		loop_func_queue_.push_back(func);
+	}
+	else
+	{
+		loop_once_func_queue_.push(func);
+	}
+}
+void EventLoop::CallLoopFunc()
+{
+	for (auto& func : loop_func_queue_)
+	{
+		func();
+	}
+
+	while (!loop_once_func_queue_.empty())
+	{
+		loop_once_func_queue_.front()();
+
+		loop_once_func_queue_.pop();
+	}
 }

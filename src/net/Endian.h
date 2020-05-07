@@ -11,13 +11,25 @@ namespace mongo
 
 namespace sockets
 {
-inline int32_t NetworkToHost32(int32_t num)
+inline uint32_t NetworkToHost32(uint32_t num)
 {
     return be32toh(num);
 }
-inline int32_t HostToNetwork32(int32_t num)
+
+inline uint32_t HostToNetwork32(uint32_t num)
 {
     return htobe32(num);
+}
+
+
+inline uint16_t NetworkToHost16(uint16_t num)
+{
+	return be16toh(num);
+}
+
+inline uint16_t HostToNetwork16(uint16_t num)
+{
+	return htobe16(num);
 }
 }
 }

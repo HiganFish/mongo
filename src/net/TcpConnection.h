@@ -32,7 +32,7 @@ public:
     void Send(const char* msg, size_t len);
 
     void SetMessageCallback(const MessageCallback& cb)
-    { message_callback_ = cb; }
+    { message_callback_ = cb;}
 
     void SetWriteOverCallback(const WriteOverCallback& cb)
     { write_over_callback_ = cb; }
@@ -56,6 +56,12 @@ public:
     { return status_ == CONNECTED; }
 
     void EnableAutoClose(int sec);
+
+    void SetArg(void* arg)
+	{ arg_ = arg; }
+
+	void* GetArg()
+	{ return arg_; }
 private:
 
     enum Status{CONNECTING, CONNECTED, CLOSEING, CLOSED};
@@ -81,6 +87,8 @@ private:
     // 发送未发送完的部分 归TCPConnection所管理, 发送完毕后可以触发回调
     WriteOverCallback write_over_callback_;
     CloseCallback close_callback_;
+
+    void* arg_;
 
     void ReadHandle();
     void WriteHandle();

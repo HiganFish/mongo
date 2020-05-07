@@ -11,7 +11,7 @@ using namespace mongo::net;
 
 Timer::Timer():
 running_(false),
-default_return_time_(-1),
+default_return_time_(20),
 running_time_(0),
 running_ex_usec_(0)
 {

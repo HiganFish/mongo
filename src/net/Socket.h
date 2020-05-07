@@ -13,10 +13,12 @@ namespace mongo
 {
 namespace net
 {
+class Buffer;
 class InetAddress;
 class Socket : noncopyable
 {
 public:
+	Socket();
     explicit Socket(int fd);
     ~Socket();
 
@@ -33,12 +35,16 @@ public:
 
 	ssize_t Send(const char* msg, size_t len);
 
+	ssize_t Recv(Buffer* buffer);
+
 	ssize_t SendTo(const char* msg, size_t len, const InetAddress& address);
 
     int GetFd() const
     { return sockfd_; }
 
+	void SetConnectTimeout(int sec);
 
+	void SetRecvTimeout(int sec);
 private:
     int sockfd_;
 };
@@ -46,9 +52,15 @@ private:
 
 namespace sockets
 {
+int CreateBlockFd();
 int CreateNonBlockFd();
 int CreateUdpFd();
 void SetNonblocking(int fd);
+
+void SetConnectTimeout(int sockfd, int sec);
+void SetRecvTimeout(int sockfd, int sec);
+
+int Connect(mongo::net::InetAddress* addr, const char* name, uint16_t port);
 }
 }
 

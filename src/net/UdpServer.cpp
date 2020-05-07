@@ -15,31 +15,24 @@ UdpServer::UdpServer(const std::string& name, const InetAddress& addr):
 	onmessage_callback(std::bind(&UdpServer::DefaultOnMessage, this, std::placeholders::_1)),
 	looping_(false)
 {
+	bindfd_.SetRecvTimeout(1);
 	bindfd_.Bind(addr);
 	LOG_INFO << "Bind on " << addr.GetIpPort();
 }
-void UdpServer::Start()
-{
-	Loop();
-}
-void UdpServer::Loop()
-{
-	looping_ = true;
 
-	while (looping_)
+void UdpServer::LoopOnce()
+{
+	UdpDgramPtr dgram(new UdpDgram(this, peer_addr_));
+
+	bool result = dgram->RecvFrom(bindfd_);
+
+	if (result)
 	{
-		UdpDgramPtr dgram(new UdpDgram(this, peer_addr_));
-
-		bool result = dgram->RecvFrom(bindfd_);
-
-		if (result)
+		if (onmessage_callback)
 		{
-			if (onmessage_callback)
-			{
-				onmessage_callback(dgram);
-			}
-
+			onmessage_callback(dgram);
 		}
+
 	}
 }
 void UdpServer::DefaultOnMessage(const UdpDgramPtr& dgram)

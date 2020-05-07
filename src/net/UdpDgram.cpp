@@ -13,7 +13,7 @@ server_(server),
 peer_addr_(peer_addr),
 dgram_addr_(),
 input_buffer_(4096),
-output_buffer_()
+output_buffer_(4096)
 {
 
 }

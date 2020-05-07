@@ -16,10 +16,11 @@ namespace net
 {
 class Channel;
 class MultiBase;
-
 class EventLoop
 {
 public:
+	typedef std::function<void()> LoopFunc;
+
     EventLoop();
     ~EventLoop();
 
@@ -30,13 +31,20 @@ public:
 
     void UpdateChannel(Channel *channel);
 
+    void RunInLoop(const LoopFunc& func, bool repeat = false);
+
 private:
     bool looping_;
     std::unique_ptr<MultiBase> multi_base_;
     typedef std::vector<Channel*> ActiveChannelList;
     ActiveChannelList active_channel_list;
 
+    std::vector<LoopFunc> loop_func_queue_;
+    std::queue<LoopFunc> loop_once_func_queue_;
+
     Timer timer;
+
+    void CallLoopFunc();
 };
 }
 }

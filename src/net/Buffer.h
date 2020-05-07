@@ -25,6 +25,11 @@ public:
 
     void Append(const char* begin, size_t len);
 
+    void Append(const std::string& data)
+	{
+    	 Append(data.data(), data.length());
+	}
+
     size_t ReadableBytes() const
     { return write_index_ - read_index_; }
 
@@ -51,6 +56,12 @@ public:
      * @return
      */
     int32_t PeekInt32();
+
+    uint32_t PeekUint32();
+
+    uint16_t PeekUint16();
+
+    uint8_t PeekUint8();
 
     void AppendInt32(int32_t num);
 

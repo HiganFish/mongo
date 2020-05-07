@@ -28,7 +28,7 @@ public:
 	void SetOnMessageCallback(const OnMessage& cb)
 	{ onmessage_callback = cb; }
 
-	void Start();
+	void LoopOnce();
 
 	Socket* GetBindFd()
 	{ return &bindfd_; }
@@ -42,7 +42,6 @@ private:
 	OnMessage onmessage_callback;
 
 	bool looping_;
-	void Loop();
 
 	void DefaultOnMessage(const UdpDgramPtr& dgram);
 

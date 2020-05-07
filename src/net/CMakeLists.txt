@@ -17,6 +17,7 @@ SET(HEADFILES
         Timer.h
         UdpServer.h
         UdpDgram.h
+        TcpClient.h
 )
 
 SET(SRCFILES
@@ -36,6 +37,7 @@ SET(SRCFILES
         Timer.cpp
         UdpServer.cpp
         UdpDgram.cpp
+        TcpClient.cpp
 )
 
 add_library(mongo_net ${HEADFILES} ${SRCFILES})

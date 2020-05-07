@@ -156,6 +156,37 @@ int32_t Buffer::PeekInt32()
     }
 }
 
+// TODO peek int32 ?? peek uint32??
+uint32_t Buffer::PeekUint32()
+{
+	if (ReadableBytes() >= sizeof(uint32_t))
+	{
+		uint32_t ret = 0;
+		::memcpy(&ret, ReadBegin(), sizeof(uint32_t));
+		return sockets::NetworkToHost32(ret);
+	}
+}
+
+uint16_t Buffer::PeekUint16()
+{
+	if (ReadableBytes() >= sizeof(uint16_t))
+	{
+		uint16_t ret = 0;
+		::memcpy(&ret, ReadBegin(), sizeof(uint16_t));
+		return sockets::NetworkToHost16(ret);
+	}
+}
+
+uint8_t Buffer::PeekUint8()
+{
+	if (ReadableBytes() >= sizeof(uint8_t))
+	{
+		uint8_t ret = 0;
+		::memcpy(&ret, ReadBegin(), sizeof(uint8_t));
+		return ret;
+	}
+}
+
 void Buffer::AppendInt32(int32_t num)
 {
     EnsureWriteBytes(sizeof num);
