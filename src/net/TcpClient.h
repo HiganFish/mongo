@@ -42,7 +42,7 @@ public:
 
 	void SetThreadNum(int nums);
 
-	void NewConnection(const char* addr, short port, void* arg = nullptr);
+	void GetConnection(const char* addr, short port, void* arg = nullptr);
 private:
 
 	EventLoop* loop_;

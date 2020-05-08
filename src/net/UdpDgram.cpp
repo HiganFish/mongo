@@ -30,11 +30,10 @@ void UdpDgram::Send(const std::string& str)
 
 bool UdpDgram::RecvFrom(const Socket& sockfd)
 {
-
 	struct sockaddr_in addr{};
 	socklen_t addr_len = static_cast<socklen_t>(sizeof addr);
 
-	size_t recv_size = recvfrom(sockfd.GetFd(), input_buffer_.WriteBegin(),
+	ssize_t recv_size = recvfrom(sockfd.GetFd(), input_buffer_.WriteBegin(),
 		input_buffer_.WriteableBytes(), 0,
 		(sockaddr*)&addr, &addr_len);
 

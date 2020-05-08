@@ -62,6 +62,9 @@ public:
 
 	void* GetArg()
 	{ return arg_; }
+
+	Buffer* GetInputBuffer()
+	{ return &input_buffer_; }
 private:
 
     enum Status{CONNECTING, CONNECTED, CLOSEING, CLOSED};

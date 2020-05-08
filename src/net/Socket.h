@@ -60,7 +60,7 @@ void SetNonblocking(int fd);
 void SetConnectTimeout(int sockfd, int sec);
 void SetRecvTimeout(int sockfd, int sec);
 
-int Connect(mongo::net::InetAddress* addr, const char* name, uint16_t port);
+int Connect(const mongo::net::InetAddress& addr);
 }
 }
 

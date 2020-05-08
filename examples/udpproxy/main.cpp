@@ -15,22 +15,31 @@ Codec codec;
 void OnUdpMessage(const mongo::net::UdpDgramPtr& dgram)
 {
 	Response* response = new Response();
+	response->dgram = dgram;
+
 	codec.Decode(response, dgram->GetInputBuffer());
 
-	client_server->NewConnection(response->addr, response->port, response);
+	client_server->GetConnection(response->addr, response->port, response);
 }
 
 void OnConnection(const mongo::net::TcpConnectionPtr& conn)
 {
 	Response* response = static_cast<Response*>(conn->GetArg());
 	conn->Send(response->data, response->data_len);
+
+	mongo::net::Buffer* InputBuffer = conn->GetInputBuffer();
+	InputBuffer->Append(response->uuid, 37);
 }
 
 void OnTcpMessage(const mongo::net::TcpConnectionPtr& conn, mongo::net::Buffer* buffer)
 {
-	// Response* response = static_cast<Response*>(conn->GetArg());
+	Response* response = static_cast<Response*>(conn->GetArg());
+	buffer->RAppendInt32(buffer->ReadableBytes());
 
-	LOG_INFO << buffer->ReadableBytes() << "\r\n" << buffer->ReadAllAsString();
+	LOG_INFO << "Reply-" << buffer->ReadableBytes() << " " << response->uuid;
+	response->dgram->Send(buffer->ReadBegin(), buffer->ReadableBytes());
+	buffer->DropAllData();
+	buffer->Append(response->uuid, 37);
 }
 
 int main()

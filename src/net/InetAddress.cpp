@@ -4,6 +4,7 @@
 
 #include <cstring>
 #include <arpa/inet.h>
+#include <netdb.h>
 #include "InetAddress.h"
 
 using namespace mongo;
@@ -21,6 +22,21 @@ InetAddress("0.0.0.0", port)
 {
 
 }
+
+InetAddress::InetAddress(const char* addr, short port)
+{
+	struct hostent* hostptr =  gethostbyname(addr);
+	addr_.sin_family = AF_INET;
+	addr_.sin_port = htons(port);
+
+	if (hostptr != nullptr)
+	{
+		addr_.sin_addr = *(struct in_addr*)hostptr->h_addr;
+		ip_port_.append(addr);
+		ip_port_ += ":" + std::to_string(port);
+	}
+}
+
 
 InetAddress::InetAddress(const std::string& ip, short port)
 {

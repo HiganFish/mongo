@@ -18,6 +18,7 @@ public:
     InetAddress();
     explicit InetAddress(short port);
     InetAddress(const std::string& ip, short port);
+    InetAddress(const char* addr, short port);
     ~InetAddress();
 
     const std::string& GetIpPort() const

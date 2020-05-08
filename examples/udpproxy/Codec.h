@@ -9,8 +9,13 @@
 #include <Buffer.h>
 #include <cstdint>
 #include <cstring>
+#include <memory>
+#include <UdpServer.h>
+
+class UdpDgram;
 struct Response
 {
+	mongo::net::UdpDgramPtr dgram;
 	const char* uuid;
 	uint16_t port;
 	uint32_t check;

@@ -139,22 +139,12 @@ void sockets::SetConnectTimeout(int sockfd, int sec)
 	LOG_FATAL_IF(ret < 0) << "socket set timeout error";
 }
 
-int sockets::Connect(mongo::net::InetAddress* server_addr,  const char* name, uint16_t port)
+int sockets::Connect(const mongo::net::InetAddress& server_addr)
 {
 	int sockfd = CreateBlockFd();
 	sockets::SetConnectTimeout(sockfd, 1);
 
-	struct hostent* hostptr =  gethostbyname(name);
-	sockaddr_in addr{};
-	addr.sin_family = AF_INET;
-	addr.sin_port = htons(port);
-
-	if (hostptr != nullptr)
-	{
-		addr.sin_addr = *(struct in_addr*)hostptr->h_addr;
-	}
-
-	server_addr->SetAddr(addr);
+	const sockaddr_in& addr = server_addr.GetAddr();
 
 	if (connect(sockfd, (sockaddr*)&addr, sizeof addr) == 0)
 	{
