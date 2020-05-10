@@ -33,35 +33,26 @@ void TcpClient::GetConnection(const char* addr, short port, void* arg)
 
 	std::string connection_name = client_name_ + "-" + server_addr.GetIpPort();
 
-	auto result = connections.find(connection_name);
-	TcpConnectionPtr connection;
-	if (result != connections.end())
+	int sockfd = sockets::Connect(server_addr);
+	if (sockfd == -1)
 	{
-		connection = result->second;
+		return;
 	}
-	else
-	{
-		int sockfd = sockets::Connect(server_addr);
-		if (sockfd == -1)
-		{
-			return;
-		}
-		/**
-		 * 这一行代码很妙, 单线程时候返回最初传入的事件循环 多线程返回对应的事件循环
-		 */
-		EventLoop *io_loop = poll_->GetNextEventLoop();
+	/**
+	 * 这一行代码很妙, 单线程时候返回最初传入的事件循环 多线程返回对应的事件循环
+	 */
+	EventLoop *io_loop = poll_->GetNextEventLoop();
 
-		connection.reset(new TcpConnection(io_loop, connection_name, sockfd, server_addr, local_hosts_));
-		connections[connection_name] = connection;
-		connection->SetArg(arg);
-		connection->SetMessageCallback(message_callback_);
-		connection->SetWriteOverCallback(writeover_callback_);
-		connection->SetCloseCallback(std::bind(&TcpClient::CloseConnection, this, std::placeholders::_1));
+	TcpConnectionPtr connection(new TcpConnection(io_loop, connection_name, sockfd, server_addr, local_hosts_));
+	connections[connection_name] = connection;
+	connection->SetArg(arg);
+	connection->SetMessageCallback(message_callback_);
+	connection->SetWriteOverCallback(writeover_callback_);
+	connection->SetCloseCallback(std::bind(&TcpClient::CloseConnection, this, std::placeholders::_1));
 
-		LOG_INFO << "connection " << connection_name << " connected";
+	LOG_INFO << "connection " << connection_name << " connected";
 
-		connection->ConnectionCreated();
-	}
+	connection->ConnectionCreated();
 
 	if (newconnection_callback_)
 	{
