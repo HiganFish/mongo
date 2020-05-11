@@ -30,6 +30,8 @@ public:
 
 	void LoopOnce();
 
+	void Loop();
+
 	Socket* GetBindFd()
 	{ return &bindfd_; }
 

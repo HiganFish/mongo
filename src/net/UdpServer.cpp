@@ -40,3 +40,10 @@ void UdpServer::DefaultOnMessage(const UdpDgramPtr& dgram)
 	LOG_INFO << dgram->GetInputBuffer()->ReadableBytes() << " \r\n" <<
 		  dgram->GetInputBuffer()->ReadAllAsString();
 }
+void UdpServer::Loop()
+{
+	while (looping_)
+	{
+		LoopOnce();
+	}
+}

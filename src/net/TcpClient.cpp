@@ -30,8 +30,8 @@ void TcpClient::Start()
 void TcpClient::GetConnection(const char* addr, short port, void* arg)
 {
 	InetAddress server_addr(addr, port);
-
-	std::string connection_name = client_name_ + "-" + server_addr.GetIpPort();
+	Timestamp stamp(Timestamp::Now());
+	std::string connection_name = client_name_ + "-" + server_addr.GetIpPort() +"-" + stamp.ToSecMsecUsec();
 
 	int sockfd = sockets::Connect(server_addr);
 	if (sockfd == -1)
@@ -63,7 +63,6 @@ void TcpClient::CloseConnection(const TcpConnectionPtr& conn)
 {
 	connections.erase(conn->GetConnectionName());
 	LOG_INFO << "connection " << conn->GetConnectionName() << " closed";
-
 	if (close_callback_)
 	{
 		close_callback_(conn);

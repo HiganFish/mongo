@@ -31,5 +31,5 @@ int main()
 
 	mongo::net::UdpServer server("udpserver-test", addr);
 	server.SetOnMessageCallback(OnMessage);
-	server.Start();
+	server.LoopOnce();
 }

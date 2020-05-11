@@ -80,6 +80,7 @@ void MultiEpoll::FillActiveChannelList(int number, ActiveChannelList* channel_li
         if (channel == nullptr)
         {
             LOG_ERROR << "static_cast event.data.ptr error";
+			continue;
         }
         channel->SetEvents(events_[i].events);
         channel_list->push_back(channel);
