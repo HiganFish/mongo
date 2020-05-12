@@ -42,6 +42,8 @@ public:
 
     void DropAllData();
 
+    const char* FindCrlf();
+
     std::string ReadAllAsString();
     std::string ReadBytesAsString(size_t bytes);
 
@@ -58,8 +60,9 @@ public:
     void EnsureWriteBytes(size_t len);
 private:
 
-    const static int DEFAULT_BUFFER_SIZE = 1024;
-    const static int BUFFER_BEGIN = 8;
+    const static int DEFAULT_BUFFER_SIZE;
+    const static int BUFFER_BEGIN;
+	const static std::string CRLF;
 
     size_t read_index_;
     size_t write_index_;

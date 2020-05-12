@@ -7,6 +7,8 @@
 #include <memory>
 #include <functional>
 
+#include "Timestamp.h"
+
 using std::placeholders::_1;
 using std::placeholders::_2;
 using std::placeholders::_3;
@@ -23,7 +25,7 @@ typedef std::function<void(const TcpConnectionPtr&)> WriteOverCallback;
 typedef std::function<void(const TcpConnectionPtr&)> ErrorCallback;
 typedef std::function<void(const TcpConnectionPtr&)> CloseCallback;
 
-typedef std::function<void(const TcpConnectionPtr&, Buffer*)> MessageCallback;
+typedef std::function<void(const TcpConnectionPtr&, Buffer*, Timestamp recv_time)> MessageCallback;
 }
 }
 

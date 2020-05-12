@@ -40,3 +40,5 @@ if(PROTOBUF_FOUND)
     add_subdirectory(protobuf)
     target_link_libraries(mongo_net mongo_protobuf)
 endif()
+
+add_subdirectory(http)

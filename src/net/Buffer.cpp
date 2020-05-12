@@ -6,13 +6,16 @@
 #include <sys/uio.h>
 #include <cassert>
 #include <cstring>
+#include <algorithm>
 #include "Buffer.h"
 
 using namespace mongo;
 using namespace mongo::net;
 
-const int Buffer::DEFAULT_BUFFER_SIZE;
-const int Buffer::BUFFER_BEGIN;
+const int Buffer::DEFAULT_BUFFER_SIZE = 1024;
+const int Buffer::BUFFER_BEGIN = 8;
+
+const std::string Buffer::CRLF("\r\n");
 
 Buffer::Buffer():
 read_index_(BUFFER_BEGIN),
@@ -160,4 +163,10 @@ void Buffer::RAppendInt32(int32_t num)
     assert(read_index_ >= num_len);
     memcpy(ReadBegin() - num_len, &newwork_num, num_len);
     read_index_ -= num_len;
+}
+const char* Buffer::FindCrlf()
+{
+	 const char* result = std::search(ReadBegin(), WriteBegin(), *CRLF.begin(), *CRLF.end());
+
+	 return result == WriteBegin() ? nullptr: result;
 }
