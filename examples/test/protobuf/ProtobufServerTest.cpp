@@ -2,9 +2,9 @@
 // Created by lsmg on 4/10/20.
 //
 
-#include <EventLoop.h>
-#include <protobuf/ProtobufServer.h>
-#include <Logger.h>
+#include <mongo/net/EventLoop.h>
+#include <mongo/net/protobuf/ProtobufServer.h>
+#include <mongo/base/Logger.h>
 #include "login.pb.h"
 
 mongo::net::ProtobufServer* server_internal;
