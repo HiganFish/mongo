@@ -15,10 +15,13 @@ set(CXX_FLAGS
 find_package(Protobuf)
 find_package(ZLIB)
 
-include_directories(src/base)
-include_directories(src/net)
+include_directories(${PROJECT_SOURCE_DIR})
 
-add_subdirectory(src/base)
-add_subdirectory(src/game)
-add_subdirectory(src/net)
+add_subdirectory(mongo/base)
+add_subdirectory(mongo/net)
+add_subdirectory(mongo/net/http)
 add_subdirectory(examples)
+
+if(PROTOBUF_FOUND)
+    add_subdirectory(mongo/net/protobuf)
+endif()
