@@ -7,14 +7,21 @@
 #include <mongo/net/http/HttpResponse.h>
 #include <mongo/net/EventLoop.h>
 
+std::string base_url = "/home/lsmg/web/";
+
 void OnMessage(const mongo::net::HttpRequest& request, mongo::net::HttpResponse* response)
 {
-	response->SetResponseCode(mongo::net::HttpResponse::OK200);
-	response->SetResponseMessage("OK");
-	response->SetContextType(mongo::net::HttpResponse::TEXT_HTML);
-	response->SetResponseBody("<html><head><title>Example</title></head><body>"
-							  "<p>Hello World</p>"
-							  "</body></html>");
+	std::string url = base_url + request.GetPath();
+	if (!response->SetBodyFilePath(url))
+	{
+		response->SetResponseCode(mongo::net::HttpResponse::NOTFOUNT_404);
+		response->SetResponseMessage("NOT FOUND");
+	}
+	else
+	{
+		response->SetResponseCode(mongo::net::HttpResponse::OK200);
+		response->SetResponseMessage("OK");
+	}
 }
 
 int main()

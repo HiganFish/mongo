@@ -62,21 +62,34 @@ void HttpServer::OnHttpMessage(const TcpConnectionPtr& conn, const HttpRequest& 
 	bool close = (connection == "close") ||
 				 (request.GetVersion() == HttpRequest::HTTP10);
 
-	HttpResponse response(close);
+	HttpResponse* response = new HttpResponse(close);
 	if (httpmessage_callback_)
 	{
-		httpmessage_callback_(request, &response);
+		httpmessage_callback_(request, response);
 	}
 
-	Buffer buffer;
-	response.EncodeToBuffer(&buffer);
-	conn->Send(&buffer);
+	/**
+	 * 发送Html头部 未用户设置的body文件
+	 */
+	Buffer header_buffer;
+	response->EncodeToBuffer(&header_buffer);
+	conn->Send(&header_buffer);
 
-	if (close)
+	/**
+	 * 存在用户设置的body文件 则注册可写回调用于发送body文件
+	 */
+	if (response->HasFileBody())
 	{
-		conn->CloseConnection();
-		MutexGuard guard(context_map_mutex_);
-		context_map_.erase(conn->GetConnectionName());
+		conn->SetWritableCallback(std::bind(&HttpServer::OnWriteBody, this, _1));
+		conn->EnableWriting();
+		conn->SetArg(response);
+	}
+	else
+	{
+		if (close)
+		{
+			CloseConnection(conn);
+		}
 	}
 }
 void HttpServer::OnCloseConnection(const TcpConnectionPtr& conn)
@@ -87,4 +100,36 @@ void HttpServer::OnCloseConnection(const TcpConnectionPtr& conn)
 void HttpServer::Start()
 {
 	server_.Start();
+}
+
+void HttpServer::OnWriteBody(const TcpConnectionPtr& conn)
+{
+	HttpResponse* response = static_cast<HttpResponse*>(conn->GetArg());
+	if (!response)
+	{
+		return;
+	}
+
+	Buffer body_buffer;
+	bool read_over = response->ReadBodyToBuffer(&body_buffer);
+
+	conn->Send(&body_buffer);
+
+	if (read_over)
+	{
+		delete response;
+		conn->SetArg(nullptr);
+
+		conn->DisableWriting();
+		if (response->IsCloseConnection())
+		{
+			CloseConnection(conn);
+		}
+	}
+}
+void HttpServer::CloseConnection(const TcpConnectionPtr& conn)
+{
+	conn->CloseConnection();
+	MutexGuard guard(context_map_mutex_);
+	context_map_.erase(conn->GetConnectionName());
 }

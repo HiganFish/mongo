@@ -53,23 +53,38 @@ void TcpConnection::ReadHandle()
 }
 void TcpConnection::WriteHandle()
 {
-    if (status_ == CONNECTED)
-    {
-        int ret = socket_->Send(output_buffer_.ReadBegin(), output_buffer_.ReadableBytes());
-        if (ret < 0)
-        {
-            ErrorHandle();
-        }
-        if (ret == output_buffer_.ReadableBytes())
-        {
-            channel_->DisableWriting();
-            if (write_over_callback_)
-            {
-                write_over_callback_(shared_from_this());
-            }
-        }
-        output_buffer_.AddReadIndex(ret);
-    }
+    if (status_ != CONNECTED)
+	{
+		return;
+	}
+
+    /**
+     * 如果发送缓冲区为空则可执行可写回调函数
+     */
+	if (output_buffer_.ReadableBytes() == 0)
+	{
+		if (writable_callback_)
+		{
+			writable_callback_(shared_from_this());
+		}
+	}
+	else
+	{
+		int ret = socket_->Send(output_buffer_.ReadBegin(), output_buffer_.ReadableBytes());
+		if (ret < 0)
+		{
+			ErrorHandle();
+		}
+		if (ret == output_buffer_.ReadableBytes())
+		{
+			channel_->DisableWriting();
+			if (write_over_callback_)
+			{
+				write_over_callback_(shared_from_this());
+			}
+		}
+		output_buffer_.AddReadIndex(ret);
+	}
 }
 
 void TcpConnection::ErrorHandle()
@@ -190,3 +205,11 @@ void TcpConnection::Send(Buffer* buffer)
 	}
 }
 
+void TcpConnection::EnableWriting()
+{
+	channel_->EnableWriting();
+}
+void TcpConnection::DisableWriting()
+{
+	channel_->DisableWriting();
+}

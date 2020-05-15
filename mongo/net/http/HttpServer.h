@@ -47,6 +47,10 @@ private:
 	void OnConnection(const TcpConnectionPtr& conn);
 
 	void OnCloseConnection(const TcpConnectionPtr& conn);
+
+	void OnWriteBody(const TcpConnectionPtr& conn);
+
+	void CloseConnection(const TcpConnectionPtr& conn);
 };
 }
 }
