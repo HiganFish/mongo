@@ -4,9 +4,9 @@
 
 #include <mongo/net/TcpServer.h>
 #include <mongo/net/EventLoop.h>
-#include <TcpConnection.h>
+#include <mongo/net/TcpConnection.h>
 #include <mongo/base/Logger.h>
-#include <Timestamp.h>
+#include <mongo/base/Timestamp.h>
 
 void OnTimeOver1(const mongo::net::TcpConnectionPtr& conn, void* arg)
 {
