@@ -77,7 +77,11 @@ void TcpConnection::WriteHandle()
 		}
 		if (ret == output_buffer_.ReadableBytes())
 		{
-			channel_->DisableWriting();
+			if (!writable_callback_)
+			{
+				channel_->DisableWriting();
+			}
+
 			if (write_over_callback_)
 			{
 				write_over_callback_(shared_from_this());

@@ -62,7 +62,7 @@ void HttpServer::OnHttpMessage(const TcpConnectionPtr& conn, const HttpRequest& 
 	bool close = (connection == "close") ||
 				 (request.GetVersion() == HttpRequest::HTTP10);
 
-	HttpResponse* response = new HttpResponse(close);
+	HttpResponsePtr response(new HttpResponse(close));
 	if (httpmessage_callback_)
 	{
 		httpmessage_callback_(request, response);
@@ -74,22 +74,22 @@ void HttpServer::OnHttpMessage(const TcpConnectionPtr& conn, const HttpRequest& 
 	Buffer header_buffer;
 	response->EncodeToBuffer(&header_buffer);
 	conn->Send(&header_buffer);
-
 	/**
 	 * 存在用户设置的body文件 则注册可写回调用于发送body文件
 	 */
-	if (response->HasFileBody())
+	if (!response->HasFileBody())
 	{
-		conn->SetWritableCallback(std::bind(&HttpServer::OnWriteBody, this, _1));
-		conn->EnableWriting();
-		conn->SetArg(response);
+		CloseConnection(conn, response);
+	}
+
+	if (SendBody(conn, response))
+	{
+		CloseConnection(conn, response);
 	}
 	else
 	{
-		if (close)
-		{
-			CloseConnection(conn);
-		}
+		conn->SetWritableCallback(std::bind(&HttpServer::OnWriteBody, this, _1, response));
+		conn->EnableWriting();
 	}
 }
 void HttpServer::OnCloseConnection(const TcpConnectionPtr& conn)
@@ -102,34 +102,45 @@ void HttpServer::Start()
 	server_.Start();
 }
 
-void HttpServer::OnWriteBody(const TcpConnectionPtr& conn)
+void HttpServer::OnWriteBody(const TcpConnectionPtr& conn, const HttpResponsePtr& response)
 {
-	HttpResponse* response = static_cast<HttpResponse*>(conn->GetArg());
 	if (!response)
 	{
 		return;
 	}
 
+	bool read_over = SendBody(conn, response);
+
+	if (read_over)
+	{
+		conn->DisableWriting();
+	}
+}
+void HttpServer::CloseConnection(const TcpConnectionPtr& conn, const HttpResponsePtr& response)
+{
+	if (response->IsCloseConnection())
+	{
+		conn->CloseConnection();
+		MutexGuard guard(context_map_mutex_);
+		context_map_.erase(conn->GetConnectionName());
+	}
+}
+
+void HttpServer::SetExThreadNum(int nums)
+{
+	server_.SetThreadNum(nums);
+}
+
+bool HttpServer::SendBody(const TcpConnectionPtr& conn, const HttpServer::HttpResponsePtr& response)
+{
 	Buffer body_buffer;
 	bool read_over = response->ReadBodyToBuffer(&body_buffer);
-
 	conn->Send(&body_buffer);
 
 	if (read_over)
 	{
-		delete response;
-		conn->SetArg(nullptr);
-
-		conn->DisableWriting();
-		if (response->IsCloseConnection())
-		{
-			CloseConnection(conn);
-		}
+		CloseConnection(conn, response);
 	}
-}
-void HttpServer::CloseConnection(const TcpConnectionPtr& conn)
-{
-	conn->CloseConnection();
-	MutexGuard guard(context_map_mutex_);
-	context_map_.erase(conn->GetConnectionName());
+
+	return read_over;
 }

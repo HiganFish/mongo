@@ -20,7 +20,8 @@ class HttpServer : noncopyable
 {
 public:
 	typedef std::shared_ptr<HttpContext> HttpContextPtr;
-	typedef std::function<void(const HttpRequest& request, HttpResponse* response)> HttpMessageCallback;
+	typedef std::shared_ptr<HttpResponse> HttpResponsePtr;
+	typedef std::function<void(const HttpRequest& request, const HttpResponsePtr& response)> HttpMessageCallback;
 
 	HttpServer(EventLoop* loop, const std::string& name, const InetAddress& addr);
 	~HttpServer();
@@ -28,11 +29,13 @@ public:
 	void SetHttpMessageCallback(const HttpMessageCallback& callback)
 	{ httpmessage_callback_ = callback; }
 
+	void SetExThreadNum(int nums);
+
 	void Start();
+
 private:
 
 	TcpServer server_;
-
 
 	typedef std::map<std::string, HttpContextPtr> HttpContextMap;
 
@@ -48,9 +51,11 @@ private:
 
 	void OnCloseConnection(const TcpConnectionPtr& conn);
 
-	void OnWriteBody(const TcpConnectionPtr& conn);
+	void OnWriteBody(const TcpConnectionPtr& conn, const HttpResponsePtr& response);
 
-	void CloseConnection(const TcpConnectionPtr& conn);
+	void CloseConnection(const TcpConnectionPtr& conn, const HttpResponsePtr& response);
+
+	bool SendBody(const TcpConnectionPtr& conn, const HttpResponsePtr& response);
 };
 }
 }
