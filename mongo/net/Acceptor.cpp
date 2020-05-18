@@ -11,7 +11,7 @@ using namespace mongo::net;
 Acceptor::Acceptor(EventLoop* loop, const InetAddress& addr, bool reuse_port):
 loop_(loop),
 listenfd_(sockets::CreateNonBlockFd()),
-channel_(loop, listenfd_.GetFd())
+channel_(loop, "Acceptor", listenfd_.GetFd())
 {
     listenfd_.SetReuseAddr(true);
     listenfd_.SetKeepAlive(true);

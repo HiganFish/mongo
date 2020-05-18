@@ -6,7 +6,6 @@
 #define _HTTPSERVER_H_
 
 #include "mongo/net/TcpServer.h"
-#include "mongo/base/MutexGuard.h"
 
 namespace mongo
 {
@@ -39,7 +38,7 @@ private:
 
 	typedef std::map<std::string, HttpContextPtr> HttpContextMap;
 
-	Mutex context_map_mutex_;
+	Mutex mutex_context_map_;
 	HttpContextMap context_map_;
 
 	HttpMessageCallback httpmessage_callback_;
@@ -53,7 +52,7 @@ private:
 
 	void OnWriteBody(const TcpConnectionPtr& conn, const HttpResponsePtr& response);
 
-	void CloseConnection(const TcpConnectionPtr& conn, const HttpResponsePtr& response);
+	void TryCloseConnection(const TcpConnectionPtr& conn, const HttpResponsePtr& response);
 
 	bool SendBody(const TcpConnectionPtr& conn, const HttpResponsePtr& response);
 };

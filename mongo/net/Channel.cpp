@@ -11,8 +11,9 @@
 using namespace mongo;
 using namespace mongo::net;
 
-Channel::Channel(EventLoop *loop, int fd):
+Channel::Channel(EventLoop *loop, const std::string& name, int fd):
     loop_(loop),
+    name_(name),
     fd_(fd),
     events_(0),
     revents_(0),
@@ -32,6 +33,9 @@ void Channel::Update()
 }
 void Channel::HandleEvent()
 {
+
+	LOG_DEBUG << "Channel: "<< name_ << " HandlerEvent";
+
     if (events_ & EPOLLIN)
     {
         if (read_callback_)

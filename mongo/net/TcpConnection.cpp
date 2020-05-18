@@ -17,7 +17,7 @@ status_(CONNECTING),
 sum_recv_(0),
 established_time_(Timestamp::Now()),
 socket_(new Socket(sockfd)),
-channel_(new Channel(loop_, socket_->GetFd())),
+channel_(new Channel(loop_, connection_name_, socket_->GetFd())),
 host_addr_(host_addr),
 client_addr_(client_addr)
 {

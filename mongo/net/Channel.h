@@ -26,7 +26,7 @@ public:
 
     enum ChannelStatus {ADD, ADDED, DELED};
 
-    Channel(EventLoop *loop, int fd);
+    Channel(EventLoop *loop, const std::string& name, int fd);
     ~Channel();
 
     ChannelStatus GetStatus() const
@@ -85,10 +85,13 @@ public:
 
     std::shared_ptr<TimerTask> GetTimerTaskByKey(const std::string& key)
     { return timer_task_map_[key]; }
+
+    const std::string& GetName() const
+	{ return name_; }
 private:
 
     EventLoop *loop_;
-
+	std::string name_;
     const int fd_;
 
     /**

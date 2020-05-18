@@ -27,7 +27,12 @@ HttpServer::~HttpServer()
 
 void HttpServer::OnMessageCallback(const TcpConnectionPtr& conn, Buffer* buffer, Timestamp recv_time)
 {
-	HttpContextMap::const_iterator iter = context_map_.find(conn->GetConnectionName());
+	HttpContextMap::const_iterator iter;
+	{
+		MutexGuard guard(mutex_context_map_);
+		iter = context_map_.find(conn->GetConnectionName());
+	}
+
 	if (iter == context_map_.end())
 	{
 		LOG_ERROR << "Unknow context key " << conn->GetConnectionName();
@@ -42,17 +47,14 @@ void HttpServer::OnMessageCallback(const TcpConnectionPtr& conn, Buffer* buffer,
 
 	if (context->ParseOver())
 	{
-		if (httpmessage_callback_)
-		{
-			OnHttpMessage(conn, context->GetRequest());
-			context->Reset();
-		}
+		OnHttpMessage(conn, context->GetRequest());
+		context->Reset();
 	}
 }
 void HttpServer::OnConnection(const TcpConnectionPtr& conn)
 {
 	{
-		MutexGuard guard(context_map_mutex_);
+		MutexGuard guard(mutex_context_map_);
 		context_map_[conn->GetConnectionName()].reset(new HttpContext());
 	}
 }
@@ -69,7 +71,7 @@ void HttpServer::OnHttpMessage(const TcpConnectionPtr& conn, const HttpRequest& 
 	}
 
 	/**
-	 * 发送Html头部 未用户设置的body文件
+	 * 发送HTTP头部 未用户设置的body文件
 	 */
 	Buffer header_buffer;
 	response->EncodeToBuffer(&header_buffer);
@@ -77,24 +79,26 @@ void HttpServer::OnHttpMessage(const TcpConnectionPtr& conn, const HttpRequest& 
 	/**
 	 * 存在用户设置的body文件 则注册可写回调用于发送body文件
 	 */
-	if (!response->HasFileBody())
+	if (response->HasFileBody())
 	{
-		CloseConnection(conn, response);
-	}
-
-	if (SendBody(conn, response))
-	{
-		CloseConnection(conn, response);
+		if (SendBody(conn, response))
+		{
+			TryCloseConnection(conn, response);
+		}
+		else
+		{
+			conn->SetWritableCallback(std::bind(&HttpServer::OnWriteBody, this, _1, response));
+			conn->EnableWriting();
+		}
 	}
 	else
 	{
-		conn->SetWritableCallback(std::bind(&HttpServer::OnWriteBody, this, _1, response));
-		conn->EnableWriting();
+		TryCloseConnection(conn, response);
 	}
 }
 void HttpServer::OnCloseConnection(const TcpConnectionPtr& conn)
 {
-	MutexGuard guard(context_map_mutex_);
+	MutexGuard guard(mutex_context_map_);
 	context_map_.erase(conn->GetConnectionName());
 }
 void HttpServer::Start()
@@ -116,12 +120,12 @@ void HttpServer::OnWriteBody(const TcpConnectionPtr& conn, const HttpResponsePtr
 		conn->DisableWriting();
 	}
 }
-void HttpServer::CloseConnection(const TcpConnectionPtr& conn, const HttpResponsePtr& response)
+void HttpServer::TryCloseConnection(const TcpConnectionPtr& conn, const HttpResponsePtr& response)
 {
 	if (response->IsCloseConnection())
 	{
 		conn->CloseConnection();
-		MutexGuard guard(context_map_mutex_);
+		MutexGuard guard(mutex_context_map_);
 		context_map_.erase(conn->GetConnectionName());
 	}
 }
@@ -135,11 +139,12 @@ bool HttpServer::SendBody(const TcpConnectionPtr& conn, const HttpServer::HttpRe
 {
 	Buffer body_buffer;
 	bool read_over = response->ReadBodyToBuffer(&body_buffer);
+
 	conn->Send(&body_buffer);
 
 	if (read_over)
 	{
-		CloseConnection(conn, response);
+		TryCloseConnection(conn, response);
 	}
 
 	return read_over;

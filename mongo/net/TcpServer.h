@@ -8,6 +8,7 @@
 #include <map>
 #include "Acceptor.h"
 #include "mongo/net/ConnectionCallback.h"
+#include "mongo/base/MutexGuard.h"
 
 namespace mongo
 {
@@ -55,7 +56,8 @@ private:
     NewConnectionCallback newconnection_callback_;
 
     typedef std::map<std::string, TcpConnectionPtr> ConnectionPtrMap;
-    ConnectionPtrMap connections;
+    Mutex mutex_connections_;
+    ConnectionPtrMap connections_;
 
     void NewConnection(int sockfd, const InetAddress& addr);
     void CloseConnection(const TcpConnectionPtr& conn);

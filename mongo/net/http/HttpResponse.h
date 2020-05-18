@@ -24,7 +24,7 @@ public:
 	enum ResponseCode
 	{
 		OK200 = 200,
-		NOTFOUNT_404 = 400
+		NOTFOUNT_404 = 404
 	};
 
 	enum ContentType
