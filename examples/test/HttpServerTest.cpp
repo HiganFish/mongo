@@ -7,6 +7,7 @@
 #include <mongo/net/http/HttpResponse.h>
 #include <mongo/net/EventLoop.h>
 #include <mongo/base/Logger.h>
+#include <mongo/base/Daemon.h>
 
 std::string base_url = "/home/lsmg/web/";
 
@@ -41,6 +42,8 @@ void OnMessage(const mongo::net::HttpRequest& request, const mongo::net::HttpSer
 int main()
 {
 	// mongo::Logger::SetLogLevel(mongo::Logger::LogLevel::DEBUG);
+
+	mongo::Daemon::InitDaemon();
 
 	mongo::net::EventLoop loop;
 	mongo::net::HttpServer server(&loop, "http-test", mongo::net::InetAddress(8112));
