@@ -17,6 +17,7 @@
 #include <string>
 #include <cstdio>
 #include "noncopyable.h"
+
 namespace mongo
 {
 class LogBuffer : noncopyable

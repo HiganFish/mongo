@@ -3,6 +3,9 @@
 //
 
 #include <cassert>
+#include <memory>
+
+#include "LogFile.h"
 #include "mongo/base/Logger.h"
 #include "Thread.h"
 
@@ -47,6 +50,10 @@ inline LogStream& operator<<(LogStream& s, T v)
 
 using namespace mongo;
 
+
+Logger::LogPlace Logger::place_ = CONSOLE;
+std::unique_ptr<LogFile> Logger::log_file_;
+
 Logger::Logger(LogLevel level, SourceFile file, int line, const char* func):
 impl_(level, file, line)
 {
@@ -65,7 +72,18 @@ Logger::~Logger()
     impl_.Finish();
 
     const LogBuffer& buffer(GetStream().GetBuffer());
-    fwrite(buffer.GetData(), 1, buffer.Length(), stdout);
+
+    if (place_ == CONSOLE)
+	{
+		fwrite(buffer.GetData(), 1, buffer.Length(), stdout);
+	}
+    else if (place_ == FILE)
+	{
+    	if (log_file_)
+		{
+    		log_file_->Append(buffer.GetData(), buffer.Length());
+		}
+	}
 
     if (impl_.level_ == FATAL)
     {
@@ -79,6 +97,15 @@ Logger::LogLevel g_log_level = Logger::INFO;
 void Logger::SetLogLevel(Logger::LogLevel level)
 {
     g_log_level = level;
+}
+
+void Logger::SetLogPlace(Logger::LogPlace place, const std::string& file_prefix, const std::string& file_dir)
+{
+	if (place == FILE)
+	{
+		log_file_ = std::make_unique<LogFile>(file_prefix, file_dir);
+		place_ = FILE;
+	}
 }
 
 Logger::Impl::Impl(LogLevel level, const SourceFile& file, int line):

@@ -11,11 +11,14 @@
 #define MONGO_SRC_BASE_LOGGER_H
 
 #include <cstring>
+#include <memory>
 #include "LogStream.h"
 #include "mongo/base/Timestamp.h"
 
 namespace mongo
 {
+
+class LogFile;
 class Logger
 {
 public:
@@ -28,6 +31,12 @@ public:
         FATAL,
         NUM_LOG_LEVELS /* 仅用于表示LogLevel元素个数 不做实际使用 */
     };
+
+    enum LogPlace
+	{
+    	CONSOLE,
+    	FILE,
+	};
 
     class SourceFile
     {
@@ -63,6 +72,11 @@ public:
 
     static LogLevel GetLogLevel();
     static void SetLogLevel(LogLevel level);
+	static void SetLogPlace(Logger::LogPlace place, const std::string& file_prefix = "", const std::string& file_dir = "");
+    static LogPlace place_;
+
+
+	static std::unique_ptr<LogFile> log_file_;
 
 private:
 
