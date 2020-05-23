@@ -9,7 +9,7 @@
 #include <mongo/base/Logger.h>
 #include <mongo/base/Daemon.h>
 
-std::string base_url = "/home/lsmg/web/";
+std::string base_url;
 
 bool sample_response = false;
 
@@ -39,14 +39,22 @@ void OnMessage(const mongo::net::HttpRequest& request, const mongo::net::HttpSer
 	}
 }
 
-int main()
+int main(int argc, char* argv[])
 {
-	// mongo::Logger::SetLogLevel(mongo::Logger::LogLevel::DEBUG);
+	LOG_FATAL_IF(argc < 3) << "./xxx web_root port";
 
+	base_url += argv[1];
+	short port = atoi(argv[2]);
+
+	LOG_FATAL_IF(port < 1024) << "invalid port " << port;
+
+	// mongo::Logger::SetLogLevel(mongo::Logger::LogLevel::DEBUG);
+	mongo::Logger::SetLogPlace(mongo::Logger::FILE, "HttpServerTest", "/home/lsmg");
 	mongo::Daemon::InitDaemon();
 
 	mongo::net::EventLoop loop;
-	mongo::net::HttpServer server(&loop, "http-test", mongo::net::InetAddress(8112));
+
+	mongo::net::HttpServer server(&loop, "http-test", mongo::net::InetAddress(port));
 	server.SetHttpMessageCallback(OnMessage);
 	// server.SetExThreadNum(3);
 	server.Start();
