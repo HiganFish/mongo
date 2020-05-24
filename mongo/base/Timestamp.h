@@ -40,6 +40,11 @@ public:
             std::to_string(us_since_create % 1000);
     }
 
+    Timestamp& operator-(Timestamp& stamp);
+
+	int64_t GetSec()
+	{ return us_since_create / US_PER_SECOND; }
+
 private:
     int64_t us_since_create;
 };

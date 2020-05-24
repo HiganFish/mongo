@@ -10,6 +10,8 @@
 
 using namespace mongo;
 
+const int LogFile::LOG_INTERVAL = 5;
+
 LogFile::LogFile(const std::string& prefix_name, const std::string& file_dir) :
 out_fp_(nullptr)
 {
@@ -44,10 +46,7 @@ void LogFile::Append(const char* str, size_t len)
 		return;
 	}
 
-	if (!BufferEnough(len))
-	{
-		Flush();
-	}
+	TryFlush(len);
 
 	memcpy(&buffer[write_idx_], str, len);
 	write_idx_ += len;
@@ -56,6 +55,39 @@ void LogFile::Append(const char* str, size_t len)
 bool LogFile::BufferEnough(size_t len)
 {
 	return BUFFER_SIZE - write_idx_ - len > 0;
+}
+
+void LogFile::TryFlush(size_t len)
+{
+	if (TimeUpFlush())
+	{
+		Flush();
+	}
+	else if (BufferEnough(len))
+	{
+		Flush();
+	}
+}
+std::string LogFile::GetFileName()
+{
+	std::string file_name;
+
+	Timestamp stamp(Timestamp::Now());
+	file_name += stamp.ToSecMsec();
+	file_name += ".log";
+
+	return file_name;
+}
+bool LogFile::TimeUpFlush()
+{
+	Timestamp stamp(Timestamp::Now());
+	bool write_once = (stamp - last_log_time_).GetSec() > LOG_INTERVAL;
+	if (write_once)
+	{
+		last_log_time_ = stamp;
+	}
+
+	return write_once;
 }
 
 void LogFile::Flush()
@@ -72,14 +104,4 @@ void LogFile::Flush()
 
 	fflush(out_fp_);
 	write_idx_ = 0;
-}
-std::string LogFile::GetFileName()
-{
-	std::string file_name;
-
-	Timestamp stamp(Timestamp::Now());
-	file_name += stamp.ToSecMsec();
-	file_name += ".log";
-
-	return file_name;
 }

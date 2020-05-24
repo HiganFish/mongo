@@ -17,3 +17,9 @@ Timestamp Timestamp::Now()
 
     return Timestamp(tv.tv_sec * US_PER_SECOND + tv.tv_usec);
 }
+Timestamp& Timestamp::operator-(Timestamp& stamp)
+{
+	us_since_create = us_since_create - stamp.us_since_create;
+
+	return *this;
+}

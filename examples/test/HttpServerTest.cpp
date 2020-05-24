@@ -41,16 +41,17 @@ void OnMessage(const mongo::net::HttpRequest& request, const mongo::net::HttpSer
 
 int main(int argc, char* argv[])
 {
-	LOG_FATAL_IF(argc < 3) << "./xxx web_root port";
+	LOG_FATAL_IF(argc < 4) << "./xxx web_root port log_root";
+
+	mongo::Daemon::InitDaemon();
 
 	base_url += argv[1];
 	short port = atoi(argv[2]);
-
-	LOG_FATAL_IF(port < 1024) << "invalid port " << port;
+	std::string log_dir(argv[3]);
 
 	// mongo::Logger::SetLogLevel(mongo::Logger::LogLevel::DEBUG);
-	mongo::Logger::SetLogPlace(mongo::Logger::FILE, "HttpServerTest", "/home/lsmg");
-	mongo::Daemon::InitDaemon();
+	mongo::Logger::SetLogPlace(mongo::Logger::FILE, "HttpServerTest", log_dir);
+
 
 	mongo::net::EventLoop loop;
 

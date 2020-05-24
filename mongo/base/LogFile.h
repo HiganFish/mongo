@@ -9,6 +9,8 @@
 #include <cstdio>
 #include <string>
 
+#include "Timestamp.h"
+
 namespace mongo
 {
 class LogFile
@@ -21,6 +23,9 @@ public:
 
 private:
 
+	const static int LOG_INTERVAL;
+	Timestamp last_log_time_;
+
 	const static int BUFFER_SIZE = 64 * 1024;
 
 	char buffer[BUFFER_SIZE];
@@ -29,6 +34,10 @@ private:
 	FILE* out_fp_;
 
 	bool BufferEnough(size_t len);
+
+	bool TimeUpFlush();
+
+	void TryFlush(size_t len);
 
 	void Flush();
 
