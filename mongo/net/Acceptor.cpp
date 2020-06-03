@@ -5,6 +5,8 @@
 #include "mongo/base/Logger.h"
 #include "Acceptor.h"
 
+#include <csignal>
+
 using namespace mongo;
 using namespace mongo::net;
 
@@ -18,6 +20,8 @@ channel_(loop, "Acceptor", listenfd_.GetFd())
     listenfd_.SetReusePort(reuse_port);
     listenfd_.Bind(addr.GetAddr());
     LOG_INFO << "Bind on " << addr.GetIpPort();
+
+	signal(SIGPIPE, SIG_IGN);
 }
 Acceptor::~Acceptor()
 {

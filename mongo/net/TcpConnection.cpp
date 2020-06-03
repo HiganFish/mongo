@@ -163,6 +163,9 @@ void TcpConnection::ConnectionCreated()
     if (status_ == CONNECTING)
     {
         status_ = CONNECTED;
+
+        channel_->Tie(shared_from_this());
+
         channel_->EnableReading();
     }
 }

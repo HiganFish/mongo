@@ -88,6 +88,8 @@ public:
 
     const std::string& GetName() const
 	{ return name_; }
+
+	void Tie(const std::shared_ptr<void>& obj);
 private:
 
     EventLoop *loop_;
@@ -115,7 +117,12 @@ private:
     std::map<std::string, TimeOverCallback> timer_callback_map_;
     // TimeOverCallback time_over_callback_;
 
+    std::weak_ptr<void> tie_;
+    bool tied_;
+
     void Update();
+
+    void HandleEventWithGuard();
 };
 
 }

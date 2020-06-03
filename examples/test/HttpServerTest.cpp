@@ -43,21 +43,21 @@ int main(int argc, char* argv[])
 {
 	LOG_FATAL_IF(argc < 4) << "./xxx web_root port log_root";
 
-	mongo::Daemon::InitDaemon();
+	// mongo::Daemon::InitDaemon();
 
 	base_url += argv[1];
 	short port = atoi(argv[2]);
 	std::string log_dir(argv[3]);
 
 	// mongo::Logger::SetLogLevel(mongo::Logger::LogLevel::DEBUG);
-	mongo::Logger::SetLogPlace(mongo::Logger::FILE, "HttpServerTest", log_dir);
+	mongo::Logger::SetLogPlace(mongo::Logger::CONSOLE, "HttpServerTest", log_dir);
 
 
 	mongo::net::EventLoop loop;
 
 	mongo::net::HttpServer server(&loop, "http-test", mongo::net::InetAddress(port));
 	server.SetHttpMessageCallback(OnMessage);
-	// server.SetExThreadNum(3);
+	server.SetExThreadNum(3);
 	server.Start();
 	loop.Loop();
 };

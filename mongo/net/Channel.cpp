@@ -12,14 +12,15 @@ using namespace mongo;
 using namespace mongo::net;
 
 Channel::Channel(EventLoop *loop, const std::string& name, int fd):
-    loop_(loop),
-    name_(name),
-    fd_(fd),
-    events_(0),
-    revents_(0),
-    status_(ADD),
-    timer_task_map_(),
-    timer_callback_map_()
+	loop_(loop),
+	name_(name),
+	fd_(fd),
+	events_(0),
+	revents_(0),
+	status_(ADD),
+	timer_task_map_(),
+	timer_callback_map_(),
+	tied_(false)
 {
 
 }
@@ -33,37 +34,18 @@ void Channel::Update()
 }
 void Channel::HandleEvent()
 {
-
-	LOG_DEBUG << "Channel: "<< name_ << " HandlerEvent";
-
-    if (events_ & EPOLLIN)
-    {
-        if (read_callback_)
-        {
-            read_callback_();
-        }
-    }
-    if (events_ & EPOLLOUT)
-    {
-        if (write_callback_)
-        {
-            write_callback_();
-        }
-    }
-    if (events_ & EPOLLERR)
-    {
-        if (error_callback_)
-        {
-            error_callback_();
-        }
-    }
-    if (events_ & EPOLLHUP)
-    {
-        if (close_callback_)
-        {
-            close_callback_();
-        }
-    }
+	if (tied_)
+	{
+		std::shared_ptr<void> guard = tie_.lock();
+		if (guard)
+		{
+			HandleEventWithGuard();
+		}
+	}
+	else
+	{
+		HandleEventWithGuard();
+	}
 }
 void Channel::AddTimer(const TimeOverCallback& callback, const std::string& key, int sec, int msec, bool repeat, int count)
 {
@@ -99,4 +81,42 @@ void Channel::TimerOver(const std::string& key)
     {
         callback->second(key);
     }
+}
+void Channel::HandleEventWithGuard()
+{
+	LOG_DEBUG << "Channel: "<< name_ << " HandlerEvent";
+
+	if (events_ & EPOLLIN)
+	{
+		if (read_callback_)
+		{
+			read_callback_();
+		}
+	}
+	if (events_ & EPOLLOUT)
+	{
+		if (write_callback_)
+		{
+			write_callback_();
+		}
+	}
+	if (events_ & EPOLLERR)
+	{
+		if (error_callback_)
+		{
+			error_callback_();
+		}
+	}
+	if (events_ & EPOLLHUP)
+	{
+		if (close_callback_)
+		{
+			close_callback_();
+		}
+	}
+}
+void Channel::Tie(const std::shared_ptr<void>& obj)
+{
+	tied_ = true;
+	tie_ = obj;
 }
