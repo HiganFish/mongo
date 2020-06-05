@@ -21,6 +21,9 @@ channel_(new Channel(loop_, connection_name_, socket_->GetFd())),
 host_addr_(host_addr),
 client_addr_(client_addr)
 {
+
+	socket_->SetCloseExec();
+
     channel_->SetReadCallback(std::bind(&TcpConnection::ReadHandle, this));
     channel_->SetWriteCallback(std::bind(&TcpConnection::WriteHandle, this));
     channel_->SetErrorCallback(std::bind(&TcpConnection::ErrorHandle, this));

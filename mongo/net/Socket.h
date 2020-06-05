@@ -23,6 +23,8 @@ public:
 
     void SetKeepAlive(bool enable);
 
+	void SetCloseExec();
+
     void Bind(const sockaddr_in& addr);
     void Listening();
 
@@ -41,6 +43,7 @@ namespace sockets
 {
 int CreateNonBlockFd();
 void SetNonblocking(int fd);
+void SetCloseExec(int sockfd);
 }
 }
 

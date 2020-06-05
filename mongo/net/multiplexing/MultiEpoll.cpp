@@ -6,6 +6,7 @@
 #include "mongo/base/Logger.h"
 #include "mongo/net/multiplexing/MultiEpoll.h"
 #include "mongo/net/Channel.h"
+#include "mongo/net/Socket.h"
 
 using namespace mongo;
 using namespace mongo::net;
@@ -18,6 +19,7 @@ epollfd_(epoll_create(5)),
 events_(EVENT_INIT_NUMBERS)
 {
     LOG_FATAL_IF(epollfd_ == -1) << "epoll create";
+    sockets::SetCloseExec(epollfd_);
 }
 
 MultiEpoll::~MultiEpoll()

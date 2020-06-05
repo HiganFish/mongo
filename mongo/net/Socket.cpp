@@ -4,6 +4,7 @@
 
 #include <sys/socket.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include "mongo/base/Logger.h"
 #include "mongo/net/Socket.h"
 #include "mongo/net/InetAddress.h"
@@ -67,13 +68,26 @@ int net::Socket::Send(const char* msg, size_t len)
     int ret = send(sockfd_, msg, len, MSG_DONTWAIT);
     return ret;
 }
+void net::Socket::SetCloseExec()
+{
+	sockets::SetCloseExec(sockfd_);
+}
 
 int sockets::CreateNonBlockFd()
 {
-    int sockfd =  socket(PF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+    int sockfd =  socket(PF_INET, SOCK_STREAM | SOCK_CLOEXEC | SOCK_NONBLOCK, 0);
     LOG_FATAL_IF(sockfd < 0) << "socket create error";
 }
 void sockets::SetNonblocking(int fd)
 {
 
+}
+
+void sockets::SetCloseExec(int sockfd)
+{
+	int flags = fcntl(sockfd, F_GETFD);
+	flags |= FD_CLOEXEC;
+	int ret = fcntl(sockfd, F_SETFD, flags);
+
+	LOG_FATAL_IF(ret == -1) <<  "FD_CLOEXEC error";
 }
