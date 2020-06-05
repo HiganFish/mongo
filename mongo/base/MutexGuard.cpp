@@ -2,7 +2,7 @@
 // Created by lsmg on 4/8/20.
 //
 
-#include "MutexGuard.h"
+#include "mongo/base/MutexGuard.h"
 
 mongo::MutexGuard::MutexGuard(mongo::Mutex& mutex):
 mutex_(mutex)

@@ -6,9 +6,9 @@
 #define MONGO_SRC_NET_ACCEPTOR_H
 
 #include <memory>
-#include "InetAddress.h"
-#include "Socket.h"
-#include "Channel.h"
+#include "mongo/net/InetAddress.h"
+#include "mongo/net/Socket.h"
+#include "mongo/net/Channel.h"
 
 namespace mongo
 {
@@ -16,6 +16,9 @@ namespace net
 {
 
 class EventLoop;
+/**
+ * for socket accpet
+ */
 class Acceptor : noncopyable
 {
 public:

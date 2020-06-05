@@ -3,9 +3,9 @@
 //
 
 #include "mongo/base/Logger.h"
-#include "TcpConnection.h"
-#include "Socket.h"
-#include "Channel.h"
+#include "mongo/net/TcpConnection.h"
+#include "mongo/net/Socket.h"
+#include "mongo/net/Channel.h"
 
 using namespace mongo;
 using namespace mongo::net;

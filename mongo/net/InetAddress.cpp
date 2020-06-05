@@ -4,7 +4,7 @@
 
 #include <cstring>
 #include <arpa/inet.h>
-#include "InetAddress.h"
+#include "mongo/net/InetAddress.h"
 
 using namespace mongo;
 using namespace mongo::net;

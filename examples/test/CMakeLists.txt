@@ -1,13 +1,13 @@
-add_executable(accept_test accept.cpp)
+add_executable(accept_test AcceptTest.cpp)
 target_link_libraries(accept_test mongo_net)
 
-add_executable(buffer_test buffer.cpp)
+add_executable(buffer_test BufferTest.cpp)
 target_link_libraries(buffer_test mongo_net)
 
-add_executable(logger_test logger.cpp)
+add_executable(logger_test LoggerTest.cpp)
 target_link_libraries(logger_test mongo_net)
 
-add_executable(timer_test timer.cpp)
+add_executable(timer_test TimerTest.cpp)
 target_link_libraries(timer_test mongo_net)
 
 add_executable(tcpserver_test TcpServerTest.cpp)
@@ -16,7 +16,7 @@ target_link_libraries(tcpserver_test mongo_net)
 add_executable(httpserver_test HttpServerTest.cpp)
 target_link_libraries(httpserver_test mongo_http)
 
-add_executable(logfile_test logfile.cpp)
+add_executable(logfile_test LogFileTest.cpp)
 target_link_libraries(logfile_test mongo_base)
 
 if(PROTOBUF_FOUND)

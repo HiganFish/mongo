@@ -6,7 +6,7 @@
 #define _HTTPCONTEXT_H_
 
 #include "mongo/net/Buffer.h"
-#include "HttpRequest.h"
+#include "mongo/net/http/HttpRequest.h"
 
 namespace mongo
 {

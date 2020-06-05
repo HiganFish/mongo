@@ -5,7 +5,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include "HttpResponse.h"
+#include "mongo/net/http/HttpResponse.h"
 #include "mongo/base/Logger.h"
 #include "mongo/net/Buffer.h"
 

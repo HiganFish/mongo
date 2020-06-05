@@ -16,7 +16,7 @@
 #include <cstring>
 #include <string>
 #include <cstdio>
-#include "noncopyable.h"
+#include "mongo/base/noncopyable.h"
 
 namespace mongo
 {
@@ -88,7 +88,7 @@ public:
     LogStream& operator<<(const char* str);
     LogStream& operator<<(const std::string& str);
 
-    const LogBuffer& GetBuffer() const
+	const LogBuffer& GetBuffer() const
     {
         return buffer_;
     }
@@ -127,6 +127,12 @@ Fmt::Fmt(const char* fmt, T val)
     static_assert(std::is_arithmetic<T>::value == true, "Must be arithmetic type");
     length_ = snprintf(buff_, sizeof buff_, fmt, val);
     assert(length_ < sizeof buff_);
+}
+
+inline LogStream& operator<<(LogStream& s, const Fmt& fmt)
+{
+	s.Append(fmt.GetData(), fmt.GetLength());
+	return s;
 }
 }
 #endif //MONGO_SRC_BASE_LOGSTREAM_H

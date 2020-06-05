@@ -12,7 +12,7 @@
 
 #include <cstring>
 #include <memory>
-#include "LogStream.h"
+#include "mongo/base/LogStream.h"
 #include "mongo/base/Timestamp.h"
 
 namespace mongo

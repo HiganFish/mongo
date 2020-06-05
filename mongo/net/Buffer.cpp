@@ -2,7 +2,6 @@
 // Created by lsmg on 4/7/20.
 //
 
-#include <sys/socket.h>
 #include <sys/uio.h>
 #include <cassert>
 #include <cstring>

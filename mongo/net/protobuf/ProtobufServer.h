@@ -6,8 +6,8 @@
 #define MONGO_SRC_NET_PROTOBUF_PROTOBUFSERVER_H
 
 #include "mongo/net/TcpServer.h"
-#include "ProtobufCodec.h"
-#include "Dispatcher.h"
+#include "mongo/net/protobuf/ProtobufCodec.h"
+#include "mongo/net/protobuf/Dispatcher.h"
 
 namespace mongo
 {

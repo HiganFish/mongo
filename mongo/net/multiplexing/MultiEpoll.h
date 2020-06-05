@@ -8,7 +8,7 @@
 #include <vector>
 #include <sys/epoll.h>
 
-#include "MultiBase.h"
+#include "mongo/net/multiplexing/MultiBase.h"
 
 namespace mongo
 {

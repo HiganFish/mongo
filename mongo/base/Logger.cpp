@@ -5,9 +5,9 @@
 #include <cassert>
 #include <memory>
 
-#include "LogFile.h"
+#include "mongo/base/LogFile.h"
 #include "mongo/base/Logger.h"
-#include "Thread.h"
+#include "mongo/base/Thread.h"
 
 namespace mongo
 {
@@ -76,6 +76,11 @@ Logger::~Logger()
     if (place_ == CONSOLE)
 	{
 		fwrite(buffer.GetData(), 1, buffer.Length(), stdout);
+		if (impl_.level_ == FATAL)
+		{
+			fflush(stdout);
+			abort();
+		}
 	}
     else if (place_ == FILE)
 	{
@@ -83,13 +88,13 @@ Logger::~Logger()
 		{
     		log_file_->Append(buffer.GetData(), buffer.Length());
 		}
+		if (impl_.level_ == FATAL)
+		{
+			log_file_.release();
+		}
 	}
 
-    if (impl_.level_ == FATAL)
-    {
-        fflush(stdout);
-        abort();
-    }
+
 }
 
 Logger::LogLevel g_log_level = Logger::INFO;
@@ -123,9 +128,9 @@ void Logger::Impl::FormatTime()
 {
     // 20200409 19:21:35.121221Z
 
-    int64_t us_since_create = time_.GetUsSinceCreate();
-    time_t seconds = static_cast<time_t>(us_since_create / Timestamp::US_PER_SECOND);
-    int us = static_cast<int>(us_since_create % Timestamp::US_PER_SECOND);
+    int64_t create_usec_time = time_.GetCreateTimeAsUsec();
+    time_t seconds = static_cast<time_t>(create_usec_time / Timestamp::US_PER_SECOND);
+    int us = static_cast<int>(create_usec_time % Timestamp::US_PER_SECOND);
     if (seconds != t_last_second)
     {
         t_last_second = seconds;
@@ -134,8 +139,8 @@ void Logger::Impl::FormatTime()
         // from utc to utc+8
         seconds += 8 * 60 * 60;
 
-        struct tm tm_time;
-        ::gmtime_r(&seconds, &tm_time);
+        struct tm tm_time{};
+        gmtime_r(&seconds, &tm_time);
 
         // 20200409 19:21:35
         int len = snprintf(t_time, sizeof t_time, "%4d%02d%02d %02d:%02d:%02d",

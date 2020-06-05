@@ -4,7 +4,7 @@
 
 #include <unistd.h>
 #include "mongo/base/Logger.h"
-#include "MultiEpoll.h"
+#include "mongo/net/multiplexing/MultiEpoll.h"
 #include "mongo/net/Channel.h"
 
 using namespace mongo;

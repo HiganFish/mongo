@@ -8,7 +8,7 @@
 #include <vector>
 #include <cstddef>
 #include <string>
-#include "Endian.h"
+#include "mongo/net/Endian.h"
 
 namespace mongo
 {

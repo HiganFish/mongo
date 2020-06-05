@@ -3,10 +3,10 @@
 //
 
 #include <cstring>
-#include "LogFile.h"
-#include "Timestamp.h"
-#include "unistd.h"
-#include "Logger.h"
+#include <unistd.h>
+
+#include "mongo/base/LogFile.h"
+#include "mongo/base/Logger.h"
 
 using namespace mongo;
 
@@ -34,6 +34,8 @@ out_fp_(nullptr)
 
 	file_name += GetFileName();
 	out_fp_ = fopen(file_name.c_str(), "a");
+
+	LOG_FATAL_IF(out_fp_ == nullptr);
 }
 LogFile::~LogFile()
 {
@@ -45,6 +47,8 @@ void LogFile::Append(const char* str, size_t len)
 	{
 		return;
 	}
+
+	MutexGuard guard(buffer_mutex_);
 
 	TryFlush(len);
 

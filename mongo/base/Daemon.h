@@ -8,15 +8,21 @@
 #include <unistd.h>
 #include <csignal>
 #include <cstdlib>
-#include "noncopyable.h"
+#include "mongo/base/noncopyable.h"
 
 namespace mongo
 {
 
+/**
+ * 守护进程
+ */
 class Daemon : noncopyable
 {
 public:
 
+	/*
+	 * 将程序初始化为守护进程
+	 */
 	static void InitDaemon();
 
 private:

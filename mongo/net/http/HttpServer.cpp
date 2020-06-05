@@ -2,9 +2,9 @@
 // Created by lsmg on 5/11/20.
 //
 
-#include "HttpServer.h"
-#include "HttpContext.h"
-#include "HttpResponse.h"
+#include "mongo/net/http/HttpServer.h"
+#include "mongo/net/http/HttpContext.h"
+#include "mongo/net/http/HttpResponse.h"
 
 #include "mongo/base/Logger.h"
 #include "mongo/net/TcpConnection.h"
