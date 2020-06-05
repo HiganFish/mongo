@@ -28,17 +28,17 @@ HttpServer::~HttpServer()
 void HttpServer::OnMessageCallback(const TcpConnectionPtr& conn, Buffer* buffer, Timestamp recv_time)
 {
 	HttpContextMap::const_iterator iter;
+	HttpContextPtr context;
 	{
 		MutexGuard guard(mutex_context_map_);
 		iter = context_map_.find(conn->GetConnectionName());
+		if (iter == context_map_.end())
+		{
+			LOG_ERROR << "Unknow context key " << conn->GetConnectionName();
+			return;
+		}
+		context = iter->second;
 	}
-
-	if (iter == context_map_.end())
-	{
-		LOG_ERROR << "Unknow context key " << conn->GetConnectionName();
-		return;
-	}
-	HttpContextPtr context = iter->second;
 
 	if (!context->Parse(buffer, recv_time))
 	{
@@ -65,10 +65,8 @@ void HttpServer::OnHttpMessage(const TcpConnectionPtr& conn, const HttpRequest& 
 				 (request.GetVersion() == HttpRequest::HTTP10);
 
 	HttpResponsePtr response(new HttpResponse(close));
-	if (httpmessage_callback_)
-	{
-		httpmessage_callback_(request, response);
-	}
+
+	routing_[request](request, response);
 
 	/**
 	 * 发送HTTP头部 未用户设置的body文件
@@ -77,15 +75,14 @@ void HttpServer::OnHttpMessage(const TcpConnectionPtr& conn, const HttpRequest& 
 	response->EncodeToBuffer(&header_buffer);
 	conn->Send(&header_buffer);
 	/**
-	 * 存在用户设置的body文件 则注册可写回调用于发送body文件
+	 * 存在用户设置的body文件
 	 */
 	if (response->HasFileBody())
 	{
-		if (SendBody(conn, response))
-		{
-			TryCloseConnection(conn, response);
-		}
-		else
+		/**
+		 * body文件未发送完毕 注册回调函数
+		 */
+		if (!SendBodyAndTryClose(conn, response))
 		{
 			conn->SetWritableCallback(std::bind(&HttpServer::OnWriteBody, this, _1, response));
 			conn->EnableWriting();
@@ -113,7 +110,7 @@ void HttpServer::OnWriteBody(const TcpConnectionPtr& conn, const HttpResponsePtr
 		return;
 	}
 
-	bool read_over = SendBody(conn, response);
+	bool read_over = SendBodyAndTryClose(conn, response);
 
 	if (read_over)
 	{
@@ -135,7 +132,7 @@ void HttpServer::SetExThreadNum(int nums)
 	server_.SetThreadNum(nums);
 }
 
-bool HttpServer::SendBody(const TcpConnectionPtr& conn, const HttpServer::HttpResponsePtr& response)
+bool HttpServer::SendBodyAndTryClose(const TcpConnectionPtr& conn, const HttpResponsePtr& response)
 {
 	Buffer body_buffer;
 	bool read_over = response->ReadBodyToBuffer(&body_buffer);
@@ -148,4 +145,13 @@ bool HttpServer::SendBody(const TcpConnectionPtr& conn, const HttpServer::HttpRe
 	}
 
 	return read_over;
+}
+
+HttpRouting& HttpServer::operator[](const std::string& url)
+{
+	LOG_FATAL_IF(url.empty()) << "Routing url can't be empty";
+
+	routing_.SetUrlForAdd(url);
+
+	return routing_;
 }
