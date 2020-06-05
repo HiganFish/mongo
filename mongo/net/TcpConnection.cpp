@@ -3,9 +3,9 @@
 //
 
 #include "mongo/base/Logger.h"
-#include "TcpConnection.h"
-#include "Socket.h"
-#include "Channel.h"
+#include "mongo/net/TcpConnection.h"
+#include "mongo/net/Socket.h"
+#include "mongo/net/Channel.h"
 
 using namespace mongo;
 using namespace mongo::net;
@@ -17,7 +17,7 @@ status_(CONNECTING),
 sum_recv_(0),
 established_time_(Timestamp::Now()),
 socket_(new Socket(sockfd)),
-channel_(new Channel(loop_, socket_->GetFd())),
+channel_(new Channel(loop_, connection_name_, socket_->GetFd())),
 host_addr_(host_addr),
 client_addr_(client_addr)
 {
@@ -53,23 +53,42 @@ void TcpConnection::ReadHandle()
 }
 void TcpConnection::WriteHandle()
 {
-    if (status_ == CONNECTED)
-    {
-        int ret = socket_->Send(output_buffer_.ReadBegin(), output_buffer_.ReadableBytes());
-        if (ret < 0)
-        {
-            ErrorHandle();
-        }
-        if (ret == output_buffer_.ReadableBytes())
-        {
-            channel_->DisableWriting();
-            if (write_over_callback_)
-            {
-                write_over_callback_(shared_from_this());
-            }
-        }
-        output_buffer_.AddReadIndex(ret);
-    }
+    if (status_ != CONNECTED)
+	{
+		return;
+	}
+
+    /**
+     * 如果发送缓冲区为空则可执行可写回调函数
+     */
+	if (output_buffer_.ReadableBytes() == 0)
+	{
+		if (writable_callback_)
+		{
+			writable_callback_(shared_from_this());
+		}
+	}
+	else
+	{
+		int ret = socket_->Send(output_buffer_.ReadBegin(), output_buffer_.ReadableBytes());
+		if (ret < 0)
+		{
+			ErrorHandle();
+		}
+		if (ret == output_buffer_.ReadableBytes())
+		{
+			if (!writable_callback_)
+			{
+				channel_->DisableWriting();
+			}
+
+			if (write_over_callback_)
+			{
+				write_over_callback_(shared_from_this());
+			}
+		}
+		output_buffer_.AddReadIndex(ret);
+	}
 }
 
 void TcpConnection::ErrorHandle()
@@ -144,6 +163,9 @@ void TcpConnection::ConnectionCreated()
     if (status_ == CONNECTING)
     {
         status_ = CONNECTED;
+
+        channel_->Tie(shared_from_this());
+
         channel_->EnableReading();
     }
 }
@@ -190,3 +212,11 @@ void TcpConnection::Send(Buffer* buffer)
 	}
 }
 
+void TcpConnection::EnableWriting()
+{
+	channel_->EnableWriting();
+}
+void TcpConnection::DisableWriting()
+{
+	channel_->DisableWriting();
+}

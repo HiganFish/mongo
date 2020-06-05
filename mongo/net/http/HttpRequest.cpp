@@ -3,7 +3,7 @@
 //
 
 #include <algorithm>
-#include "HttpRequest.h"
+#include "mongo/net/http/HttpRequest.h"
 
 using namespace mongo;
 using namespace mongo::net;

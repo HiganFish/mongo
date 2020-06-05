@@ -2,7 +2,7 @@
 // Created by lsmg on 4/10/20.
 //
 
-#include "ProtobufServer.h"
+#include "mongo/net/protobuf/ProtobufServer.h"
 
 using namespace mongo;
 using namespace mongo::net;

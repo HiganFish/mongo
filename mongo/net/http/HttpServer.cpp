@@ -2,9 +2,9 @@
 // Created by lsmg on 5/11/20.
 //
 
-#include "HttpServer.h"
-#include "HttpContext.h"
-#include "HttpResponse.h"
+#include "mongo/net/http/HttpServer.h"
+#include "mongo/net/http/HttpContext.h"
+#include "mongo/net/http/HttpResponse.h"
 
 #include "mongo/base/Logger.h"
 #include "mongo/net/TcpConnection.h"
@@ -27,13 +27,18 @@ HttpServer::~HttpServer()
 
 void HttpServer::OnMessageCallback(const TcpConnectionPtr& conn, Buffer* buffer, Timestamp recv_time)
 {
-	HttpContextMap::const_iterator iter = context_map_.find(conn->GetConnectionName());
-	if (iter == context_map_.end())
+	HttpContextMap::const_iterator iter;
+	HttpContextPtr context;
 	{
-		LOG_ERROR << "Unknow context key " << conn->GetConnectionName();
-		return;
+		MutexGuard guard(mutex_context_map_);
+		iter = context_map_.find(conn->GetConnectionName());
+		if (iter == context_map_.end())
+		{
+			LOG_ERROR << "Unknow context key " << conn->GetConnectionName();
+			return;
+		}
+		context = iter->second;
 	}
-	HttpContextPtr context = iter->second;
 
 	if (!context->Parse(buffer, recv_time))
 	{
@@ -42,17 +47,14 @@ void HttpServer::OnMessageCallback(const TcpConnectionPtr& conn, Buffer* buffer,
 
 	if (context->ParseOver())
 	{
-		if (httpmessage_callback_)
-		{
-			OnHttpMessage(conn, context->GetRequest());
-			context->Reset();
-		}
+		OnHttpMessage(conn, context->GetRequest());
+		context->Reset();
 	}
 }
 void HttpServer::OnConnection(const TcpConnectionPtr& conn)
 {
 	{
-		MutexGuard guard(context_map_mutex_);
+		MutexGuard guard(mutex_context_map_);
 		context_map_[conn->GetConnectionName()].reset(new HttpContext());
 	}
 }
@@ -62,29 +64,94 @@ void HttpServer::OnHttpMessage(const TcpConnectionPtr& conn, const HttpRequest& 
 	bool close = (connection == "close") ||
 				 (request.GetVersion() == HttpRequest::HTTP10);
 
-	HttpResponse response(close);
-	if (httpmessage_callback_)
+	HttpResponsePtr response(new HttpResponse(close));
+
+	routing_[request](request, response);
+
+	/**
+	 * 发送HTTP头部 未用户设置的body文件
+	 */
+	Buffer header_buffer;
+	response->EncodeToBuffer(&header_buffer);
+	conn->Send(&header_buffer);
+	/**
+	 * 存在用户设置的body文件
+	 */
+	if (response->HasFileBody())
 	{
-		httpmessage_callback_(request, &response);
+		/**
+		 * body文件未发送完毕 注册回调函数
+		 */
+		if (!SendBodyAndTryClose(conn, response))
+		{
+			conn->SetWritableCallback(std::bind(&HttpServer::OnWriteBody, this, _1, response));
+			conn->EnableWriting();
+		}
 	}
-
-	Buffer buffer;
-	response.EncodeToBuffer(&buffer);
-	conn->Send(&buffer);
-
-	if (close)
+	else
 	{
-		conn->CloseConnection();
-		MutexGuard guard(context_map_mutex_);
-		context_map_.erase(conn->GetConnectionName());
+		TryCloseConnection(conn, response);
 	}
 }
 void HttpServer::OnCloseConnection(const TcpConnectionPtr& conn)
 {
-	MutexGuard guard(context_map_mutex_);
+	MutexGuard guard(mutex_context_map_);
 	context_map_.erase(conn->GetConnectionName());
 }
 void HttpServer::Start()
 {
 	server_.Start();
+}
+
+void HttpServer::OnWriteBody(const TcpConnectionPtr& conn, const HttpResponsePtr& response)
+{
+	if (!response)
+	{
+		return;
+	}
+
+	bool read_over = SendBodyAndTryClose(conn, response);
+
+	if (read_over)
+	{
+		conn->DisableWriting();
+	}
+}
+void HttpServer::TryCloseConnection(const TcpConnectionPtr& conn, const HttpResponsePtr& response)
+{
+	if (response->IsCloseConnection())
+	{
+		conn->CloseConnection();
+		MutexGuard guard(mutex_context_map_);
+		context_map_.erase(conn->GetConnectionName());
+	}
+}
+
+void HttpServer::SetExThreadNum(int nums)
+{
+	server_.SetThreadNum(nums);
+}
+
+bool HttpServer::SendBodyAndTryClose(const TcpConnectionPtr& conn, const HttpResponsePtr& response)
+{
+	Buffer body_buffer;
+	bool read_over = response->ReadBodyToBuffer(&body_buffer);
+
+	conn->Send(&body_buffer);
+
+	if (read_over)
+	{
+		TryCloseConnection(conn, response);
+	}
+
+	return read_over;
+}
+
+HttpRouting& HttpServer::operator[](const std::string& url)
+{
+	LOG_FATAL_IF(url.empty()) << "Routing url can't be empty";
+
+	routing_.SetUrlForAdd(url);
+
+	return routing_;
 }

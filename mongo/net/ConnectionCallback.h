@@ -22,6 +22,7 @@ class Buffer;
 typedef std::shared_ptr<TcpConnection> TcpConnectionPtr;
 
 typedef std::function<void(const TcpConnectionPtr&)> WriteOverCallback;
+typedef std::function<void(const TcpConnectionPtr&)> WritableCallback;
 typedef std::function<void(const TcpConnectionPtr&)> ErrorCallback;
 typedef std::function<void(const TcpConnectionPtr&)> CloseCallback;
 

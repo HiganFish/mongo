@@ -6,7 +6,7 @@
 #define MONGO_SRC_BASE_MUTEX_H
 
 #include <pthread.h>
-#include "noncopyable.h"
+#include "mongo/base/noncopyable.h"
 
 namespace mongo
 {

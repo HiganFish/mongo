@@ -3,7 +3,7 @@
 //
 
 #include <algorithm>
-#include "HttpContext.h"
+#include "mongo/net/http/HttpContext.h"
 
 using namespace mongo;
 using namespace mongo::net;

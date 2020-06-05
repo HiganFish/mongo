@@ -5,7 +5,7 @@
 #ifndef MONGO_SRC_BASE_CONDITION_H
 #define MONGO_SRC_BASE_CONDITION_H
 
-#include "Mutex.h"
+#include "mongo/base/Mutex.h"
 namespace mongo
 {
 class Condition : noncopyable

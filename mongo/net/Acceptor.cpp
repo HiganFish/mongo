@@ -3,7 +3,9 @@
 //
 
 #include "mongo/base/Logger.h"
-#include "Acceptor.h"
+#include "mongo/net/Acceptor.h"
+
+#include <csignal>
 
 using namespace mongo;
 using namespace mongo::net;
@@ -11,13 +13,15 @@ using namespace mongo::net;
 Acceptor::Acceptor(EventLoop* loop, const InetAddress& addr, bool reuse_port):
 loop_(loop),
 listenfd_(sockets::CreateNonBlockFd()),
-channel_(loop, listenfd_.GetFd())
+channel_(loop, "Acceptor", listenfd_.GetFd())
 {
     listenfd_.SetReuseAddr(true);
     listenfd_.SetKeepAlive(true);
     listenfd_.SetReusePort(reuse_port);
     listenfd_.Bind(addr.GetAddr());
     LOG_INFO << "Bind on " << addr.GetIpPort();
+
+	signal(SIGPIPE, SIG_IGN);
 }
 Acceptor::~Acceptor()
 {

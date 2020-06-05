@@ -4,7 +4,7 @@
 
 #include <unistd.h>
 #include "mongo/base/Logger.h"
-#include "MultiEpoll.h"
+#include "mongo/net/multiplexing/MultiEpoll.h"
 #include "mongo/net/Channel.h"
 
 using namespace mongo;
@@ -31,6 +31,7 @@ void MultiEpoll::UpdateChannel(Channel* channel)
     {
     case Channel::ADD:
     {
+    	LOG_DEBUG << "EPOLL_CTL_ADD " << channel->GetName();
         Update(EPOLL_CTL_ADD, channel);
         channel->SetStatus(Channel::ADDED);
         break;
@@ -39,6 +40,7 @@ void MultiEpoll::UpdateChannel(Channel* channel)
     {
         if (channel->GetREvents() == 0)
         {
+			LOG_DEBUG << "EPOLL_CTL_DEL " << channel->GetName();
             Update(EPOLL_CTL_DEL, channel);
             channel->SetStatus(Channel::DELED);
         }

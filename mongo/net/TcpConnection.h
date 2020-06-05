@@ -11,7 +11,7 @@
 #include "mongo/base/Timestamp.h"
 #include "mongo/net/ConnectionCallback.h"
 #include "mongo/net/Buffer.h"
-#include "InetAddress.h"
+#include "mongo/net/InetAddress.h"
 
 namespace mongo
 {
@@ -38,6 +38,9 @@ public:
     void SetWriteOverCallback(const WriteOverCallback& cb)
     { write_over_callback_ = cb; }
 
+	void SetWritableCallback(const WritableCallback & cb)
+	{ writable_callback_ = cb; }
+
     void SetCloseCallback(const CloseCallback& cb)
     { close_callback_ = cb; }
 
@@ -57,7 +60,21 @@ public:
     { return status_ == CONNECTED; }
 
     void EnableAutoClose(int sec);
+
+    void* GetArg()
+	{ return arg_; }
+
+	void SetArg(void* arg)
+	{
+    	arg_ = arg;
+	}
+
+	void EnableWriting();
+
+	void DisableWriting();
 private:
+
+	void* arg_;
 
     enum Status{CONNECTING, CONNECTED, CLOSEING, CLOSED};
 
@@ -81,6 +98,7 @@ private:
 
     // 发送未发送完的部分 归TCPConnection所管理, 发送完毕后可以触发回调
     WriteOverCallback write_over_callback_;
+    WriteOverCallback writable_callback_;
     CloseCallback close_callback_;
 
     void ReadHandle();

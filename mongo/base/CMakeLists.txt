@@ -7,6 +7,8 @@ SET(HEADFILES
         Logger.h
         LogStream.h
         Timestamp.h
+        Daemon.h
+        LogFile.h
 )
 
 SET(SRCFILES
@@ -17,6 +19,8 @@ SET(SRCFILES
         Logger.cpp
         LogStream.cpp
         Timestamp.cpp
+        Daemon.cpp
+        LogFile.cpp
 )
 
 add_library(mongo_base ${HEADFILES} ${SRCFILES})

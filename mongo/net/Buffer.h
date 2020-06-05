@@ -8,7 +8,7 @@
 #include <vector>
 #include <cstddef>
 #include <string>
-#include "Endian.h"
+#include "mongo/net/Endian.h"
 
 namespace mongo
 {
@@ -25,6 +25,11 @@ public:
     void Append(const char* begin, size_t len);
     void Append(const std::string& str)
 	{ Append(str.c_str(), str.length()); }
+	void Append(Buffer* buffer)
+	{
+    	Append(buffer->ReadBegin(), buffer->ReadableBytes());
+    	buffer->DropAllData();
+	}
 
     size_t ReadableBytes() const
     { return write_index_ - read_index_; }

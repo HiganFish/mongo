@@ -5,8 +5,8 @@
 #ifndef MONGO_SRC_BASE_MUTEXGUARD_H
 #define MONGO_SRC_BASE_MUTEXGUARD_H
 
-#include "Mutex.h"
-#include "noncopyable.h"
+#include "mongo/base/Mutex.h"
+#include "mongo/base/noncopyable.h"
 
 namespace mongo
 {

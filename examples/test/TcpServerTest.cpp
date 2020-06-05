@@ -3,7 +3,7 @@
 //
 #include <mongo/net/TcpServer.h>
 #include <mongo/net/EventLoop.h>
-#include <TcpConnection.h>
+#include <mongo/net/TcpConnection.h>
 
 void OnConnection(const mongo::net::TcpConnectionPtr& conn)
 {

@@ -9,7 +9,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <sys/syscall.h>
-#include "noncopyable.h"
+#include "mongo/base/noncopyable.h"
 namespace mongo
 {
 class Thread : noncopyable

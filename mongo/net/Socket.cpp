@@ -3,10 +3,10 @@
 //
 
 #include <sys/socket.h>
-#include <zconf.h>
+#include <unistd.h>
 #include "mongo/base/Logger.h"
-#include "Socket.h"
-#include "InetAddress.h"
+#include "mongo/net/Socket.h"
+#include "mongo/net/InetAddress.h"
 
 using namespace mongo;
 

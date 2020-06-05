@@ -4,8 +4,8 @@
 
 #include "mongo/base/Logger.h"
 #include "mongo/net/TcpServer.h"
-#include "TcpConnection.h"
-#include "EventLoopThreadPoll.h"
+#include "mongo/net/TcpConnection.h"
+#include "mongo/net/EventLoopThreadPoll.h"
 
 using namespace mongo;
 using namespace mongo::net;
@@ -36,22 +36,34 @@ void TcpServer::NewConnection(int sockfd, const InetAddress& addr)
     EventLoop *io_loop = poll_->GetNextEventLoop();
 
     TcpConnectionPtr connection(new TcpConnection(io_loop, connection_name, sockfd, host_addr_, addr));
-    connections[connection_name] = connection;
+	{
+		MutexGuard guard(mutex_connections_);
+		connections_[connection_name] = connection;
+	}
+
     connection->SetMessageCallback(message_callback_);
     connection->SetWriteOverCallback(writeover_callback_);
     connection->SetCloseCallback(std::bind(&TcpServer::CloseConnection, this, std::placeholders::_1));
 
     LOG_INFO << "connection " << connection_name << " connected";
 
-    connection->ConnectionCreated();
     if (newconnection_callback_)
     {
         newconnection_callback_(connection);
     }
+
+    /**
+     * fixed 多线程下 如果下面这行代码在newconnection_callback_前可能导致读回调先于新连接回调被调用
+     */
+	connection->ConnectionCreated();
 }
 void TcpServer::CloseConnection(const TcpConnectionPtr& conn)
 {
-    connections.erase(conn->GetConnectionName());
+    {
+        MutexGuard guard(mutex_connections_);
+		connections_.erase(conn->GetConnectionName());
+    }
+
     LOG_INFO << "connection " << conn->GetConnectionName() << " closed";
 
     if (close_callback_)

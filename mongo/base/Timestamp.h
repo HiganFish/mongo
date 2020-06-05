@@ -14,34 +14,39 @@ class Timestamp
 {
 public:
     Timestamp():
-        us_since_create(0) {}
+		create_msec_(0) {}
 
     explicit Timestamp(int64_t us):
-        us_since_create(us) {}
+		create_msec_(us) {}
 
     static Timestamp Now();
 
     const static int US_PER_SECOND = 1000 * 1000;
 
-    int64_t GetUsSinceCreate() const
-    { return us_since_create; }
+    int64_t GetCreateTimeAsUsec() const
+    { return create_msec_; }
 
     std::string ToUsec()
-    { return std::to_string(us_since_create); }
+    { return std::to_string(create_msec_); }
 
     std::string ToSecMsec()
-    { return std::to_string(us_since_create / US_PER_SECOND) + ":" +
-    std::to_string(us_since_create / 1000 % 1000); }
+    { return std::to_string(create_msec_ / US_PER_SECOND) + ":" +
+			 std::to_string(create_msec_ / 1000 % 1000); }
 
     std::string ToSecMsecUsec()
     {
-        return std::to_string(us_since_create / US_PER_SECOND) + ":" +
-            std::to_string(us_since_create / 1000 % 1000) + ":" +
-            std::to_string(us_since_create % 1000);
+        return std::to_string(create_msec_ / US_PER_SECOND) + ":" +
+			   std::to_string(create_msec_ / 1000 % 1000) + ":" +
+			   std::to_string(create_msec_ % 1000);
     }
 
+    Timestamp& operator-(Timestamp& stamp);
+
+	int64_t GetSec()
+	{ return create_msec_ / US_PER_SECOND; }
+
 private:
-    int64_t us_since_create;
+    int64_t create_msec_;
 };
 }
 #endif //MONGO_SRC_BASE_TIMESTAMP_H

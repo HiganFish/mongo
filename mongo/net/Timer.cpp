@@ -3,8 +3,8 @@
 //
 
 #include <sys/time.h>
-#include "Timer.h"
-#include "Channel.h"
+#include "mongo/net/Timer.h"
+#include "mongo/net/Channel.h"
 
 using namespace mongo;
 using namespace mongo::net;
