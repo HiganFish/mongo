@@ -4,8 +4,8 @@
 
 #include "mongo/base/Logger.h"
 #include "mongo/net/TcpServer.h"
-#include "TcpConnection.h"
-#include "EventLoopThreadPoll.h"
+#include "mongo/net/TcpConnection.h"
+#include "mongo/net/EventLoopThreadPoll.h"
 
 using namespace mongo;
 using namespace mongo::net;

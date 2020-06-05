@@ -1,10 +1,8 @@
 //
 // Created by lsmg on 4/10/20.
 //
-
-#include <zlib.h>
 #include "mongo/base/Logger.h"
-#include "ProtobufCodec.h"
+#include "mongo/net/protobuf/ProtobufCodec.h"
 using namespace mongo;
 using namespace mongo::net;
 
@@ -83,6 +81,7 @@ MessagePtr ProtobufCodec::Decode(const char* buf, int32_t len, ErrorCode* error)
 
     int32_t message_sum = AsHostInt32(buf + len - HEADER_LEN);
 
+//    #include <zlib.h>
 //    int32_t check_sum = static_cast<int32_t>(
 //        ::adler32(1,
 //            reinterpret_cast<const Bytef*>(buf),

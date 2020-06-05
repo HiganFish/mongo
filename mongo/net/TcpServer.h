@@ -6,7 +6,7 @@
 #define MONGO_SRC_NET_TCPSERVER_H
 
 #include <map>
-#include "Acceptor.h"
+#include "mongo/net/Acceptor.h"
 #include "mongo/net/ConnectionCallback.h"
 #include "mongo/base/MutexGuard.h"
 

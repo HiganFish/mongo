@@ -2,9 +2,9 @@
 // Created by lsmg on 4/5/20.
 //
 
-#include "EventLoop.h"
+#include "mongo/net/EventLoop.h"
 #include "multiplexing/MultiBase.h"
-#include "Channel.h"
+#include "mongo/net/Channel.h"
 
 using namespace mongo;
 using namespace mongo::net;

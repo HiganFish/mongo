@@ -3,6 +3,7 @@ SET(HEADFILES
         HttpContext.h
         HttpRequest.h
         HttpResponse.h
+        HttpRouting.h
         )
 
 SET(SRCFILES
@@ -10,6 +11,7 @@ SET(SRCFILES
         HttpContext.cpp
         HttpRequest.cpp
         HttpResponse.cpp
+        HttpRouting.cpp
         )
 
 add_library(mongo_http ${HEADFILES} ${SRCFILES})

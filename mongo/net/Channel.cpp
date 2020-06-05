@@ -4,9 +4,9 @@
 
 
 #include "mongo/base/Logger.h"
-#include "EventLoop.h"
-#include "Channel.h"
-#include "Timer.h"
+#include "mongo/net/EventLoop.h"
+#include "mongo/net/Channel.h"
+#include "mongo/net/Timer.h"
 
 using namespace mongo;
 using namespace mongo::net;
@@ -34,6 +34,7 @@ void Channel::Update()
 }
 void Channel::HandleEvent()
 {
+	// LEARN shared_ptr<TcpConnection>释放后 Channel在清理前执行回调的段错误
 	if (tied_)
 	{
 		std::shared_ptr<void> guard = tie_.lock();

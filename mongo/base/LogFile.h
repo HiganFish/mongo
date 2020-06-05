@@ -9,13 +9,22 @@
 #include <cstdio>
 #include <string>
 
-#include "Timestamp.h"
+#include "mongo/base/Timestamp.h"
+#include "mongo/base/MutexGuard.h"
 
 namespace mongo
 {
-class LogFile
+/**
+ * 将内存日志记录到硬盘
+ */
+class LogFile : noncopyable
 {
 public:
+	/**
+	 *
+	 * @param prefix_name 日志文件前缀
+	 * @param file_dir 日志文件目录
+	 */
 	LogFile(const std::string& prefix_name, const std::string& file_dir);
 	~LogFile();
 
@@ -40,6 +49,8 @@ private:
 	void TryFlush(size_t len);
 
 	void Flush();
+
+	Mutex buffer_mutex_;
 
 	std::string GetFileName();
 };

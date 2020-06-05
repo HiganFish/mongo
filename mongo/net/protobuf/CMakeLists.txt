@@ -10,4 +10,4 @@ SET(SRCFILES
 )
 
 add_library(mongo_protobuf ${HEADFILES} ${SRCFILES})
-target_link_libraries(mongo_protobuf mongo_net protobuf z)
+target_link_libraries(mongo_protobuf mongo_net protobuf)

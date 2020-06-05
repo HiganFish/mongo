@@ -19,7 +19,7 @@ Timestamp Timestamp::Now()
 }
 Timestamp& Timestamp::operator-(Timestamp& stamp)
 {
-	us_since_create = us_since_create - stamp.us_since_create;
+	create_msec_ = create_msec_ - stamp.create_msec_;
 
 	return *this;
 }

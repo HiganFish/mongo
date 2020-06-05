@@ -11,7 +11,7 @@
 #include "mongo/base/Timestamp.h"
 #include "mongo/net/ConnectionCallback.h"
 #include "mongo/net/Buffer.h"
-#include "InetAddress.h"
+#include "mongo/net/InetAddress.h"
 
 namespace mongo
 {

@@ -3,8 +3,8 @@
 //
 
 #include "mongo/base/MutexGuard.h"
-#include "EventLoopThread.h"
-#include "EventLoop.h"
+#include "mongo/net/EventLoopThread.h"
+#include "mongo/net/EventLoop.h"
 
 using namespace mongo;
 using namespace mongo::net;

@@ -13,7 +13,7 @@ std::string base_url;
 
 bool sample_response = false;
 
-void OnMessage(const mongo::net::HttpRequest& request, const mongo::net::HttpServer::HttpResponsePtr& response)
+void OnMessage(const mongo::net::HttpRequest& request, const mongo::net::HttpResponsePtr& response)
 {
 	std::string url = base_url + request.GetPath();
 	response->SetResponseCode(mongo::net::HttpResponse::OK200);
@@ -39,6 +39,22 @@ void OnMessage(const mongo::net::HttpRequest& request, const mongo::net::HttpSer
 	}
 }
 
+void OnGetUpdate(const mongo::net::HttpRequest& request, const mongo::net::HttpResponsePtr& response)
+{
+	LOG_INFO << "OnGetUpdate";
+	response->SetResponseCode(mongo::net::HttpResponse::OK200);
+	response->SetResponseMessage("OK");
+	response->SetResponseBody(R"({"result": OnGetUpdate})");
+}
+
+void OnGetFix(const mongo::net::HttpRequest& request, const mongo::net::HttpResponsePtr& response)
+{
+	LOG_INFO << "OnGetFix";
+	response->SetResponseCode(mongo::net::HttpResponse::OK200);
+	response->SetResponseMessage("OK");
+	response->SetResponseBody(R"({"result": OnGetFix})");
+}
+
 int main(int argc, char* argv[])
 {
 	LOG_FATAL_IF(argc < 4) << "./xxx web_root port log_root";
@@ -49,15 +65,17 @@ int main(int argc, char* argv[])
 	short port = atoi(argv[2]);
 	std::string log_dir(argv[3]);
 
-	// mongo::Logger::SetLogLevel(mongo::Logger::LogLevel::DEBUG);
 	mongo::Logger::SetLogPlace(mongo::Logger::CONSOLE, "HttpServerTest", log_dir);
-
 
 	mongo::net::EventLoop loop;
 
 	mongo::net::HttpServer server(&loop, "http-test", mongo::net::InetAddress(port));
-	server.SetHttpMessageCallback(OnMessage);
+	server["/update"].OnGet(OnGetUpdate);
+	server["/fix"].OnGet(OnGetFix);
+
+	server.SetDefaultRequestCallback(OnMessage);
 	server.SetExThreadNum(3);
+
 	server.Start();
 	loop.Loop();
 };
